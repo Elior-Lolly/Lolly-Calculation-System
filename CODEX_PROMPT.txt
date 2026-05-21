@@ -1,0 +1,35 @@
+Project goal:
+Make this static site production-ready for free hosting on Netlify or GitHub Pages.
+
+Current state:
+- This is a fully static rewrite of the Lolly Calculation System.
+- There is no backend.
+- Product data, admin settings, and uploaded images are stored in browser localStorage.
+- The site should work when hosted as plain static files.
+
+Tasks:
+1. Review index.html for any remaining hard-coded localhost references or broken asset paths.
+2. Refactor the code for readability without changing behaviour.
+3. Add a clean landing header and improve visual polish slightly, but keep the existing calculator functionality intact.
+4. Add a visible note in the admin/settings area explaining that saved changes are browser-specific and not shared across devices.
+5. Add a 'Reset local data' control with a confirmation prompt.
+6. Ensure the site works correctly when opened from a Netlify or GitHub Pages URL.
+7. Create a concise README.md with:
+   - what the app does
+   - how to deploy to Netlify
+   - how to deploy to GitHub Pages
+   - known limitation about localStorage being browser-specific
+8. Keep everything as a static site with no server dependencies.
+
+Constraints:
+- Do not introduce a backend.
+- Do not use build tooling unless absolutely necessary.
+- Keep deployment as simple static files.
+- Preserve price_list.pdf and any existing import/export behaviour.
+
+Definition of done:
+- Static hosting works.
+- No localhost/API calls remain.
+- README is present.
+- UX is slightly cleaner.
+- Local-only persistence is clearly explained to the user.
