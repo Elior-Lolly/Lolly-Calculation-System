@@ -436,7 +436,7 @@
       </details>
 
       <div class="flex flex-col md:flex-row gap-4">
-        <button id="intake-continue" class="flex-1 bg-[#125b82] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#0f3f5c] transition-colors">Continue to Configuration</button>
+        <button id="intake-continue" class="flex-1 bg-[#125b82] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#0f3f5c] transition-colors">Continue to Quote</button>
         <button id="intake-edit" class="flex-1 px-6 py-3 rounded-xl font-semibold border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors hidden">Edit Information</button>
       </div>
     </div>
@@ -504,13 +504,13 @@
           PoS Terminals
         </button>
         <button class="tab-btn px-4 py-2 rounded-full font-semibold text-gray-700" data-tab="cat2">
-          Mobile & Kiosks
+          Mobile App
         </button>
         <button class="tab-btn px-4 py-2 rounded-full font-semibold text-gray-700" data-tab="cat3">
-          Peripherals
+          PDQ & Kiosks
         </button>
         <button class="tab-btn px-4 py-2 rounded-full font-semibold text-gray-700" data-tab="cat4">
-          Digital Signage
+          Peripherals
         </button>
         <button class="tab-btn px-4 py-2 rounded-full font-semibold text-gray-700" data-tab="cat5">
           Licences
@@ -811,39 +811,39 @@
     function initializeProducts() {
       return {
         cat1: [
-          { name: 'Lolly Wave PoS Terminal (ET024)', desc: 'EPoS Terminal', price: 895.00, monthly: false, image: 'img/Lolly Wave.webp', labels: ['Regular','Self-Serve'], addons: [
+          { name: 'Lolly Wave', desc: 'EPoS Terminal', price: 895.00, monthly: false, image: 'img/Lolly Wave.webp', labels: ['Regular','Self-Serve'], addons: [
               { id: 'addon-rear-et024a', name: 'Lolly Wave PoS Rear Display (ET024a)', price: 200.00, desc: 'Rear Customer Display' },
               { id: 'cat3-0', name: 'Thermal Printer (PR001)', desc: 'Receipt Printer', price: 185.00, monthly: false },
               { id: 'cat2-1', name: 'A35 Payment Terminal (PT016)', desc: 'Payment Terminal', price: 395.00, monthly: false },
               { id: 'cat3-3', name: '2D Barcode Scanner (SC001)', desc: 'Barcode Scanner', price: 220.00, monthly: false },
               { id: 'cat5-1', name: 'PoS Licence (LIC04)', desc: 'Monthly License', price: 240.00, monthly: true }
             ] },
-          { name: 'Lolly Edge PoS Terminal (ET001)', desc: 'EPoS Terminal', price: 1100.00, monthly: false, image: 'img/Lolly Edge.webp', labels: ['Regular','Self-Serve'], addons: [
-              { id: 'cat2-1', name: 'A35 Payment Terminal (PT016)', desc: 'Payment Terminal', price: 395.00, monthly: false },
-              { id: 'cat3-3', name: '2D Barcode Scanner (SC001)', desc: 'Barcode Scanner', price: 220.00, monthly: false },
-              { id: 'cat5-1', name: 'PoS Licence (LIC04)', desc: 'Monthly License', price: 240.00, monthly: true }
+           { name: 'Lolly Evoq', desc: 'Advanced EPoS Terminal', price: 1750.00, monthly: false, image: 'img/Lolly Evoq.png', labels: ['Regular','Self-Serve'], addons: [
+              { id: 'addon-rear-et006a', name: 'Lolly Evoq PoS Rear Display', price: 275.00, desc: 'Professional Rear Display' },
+              { id: 'addon-scanner-sc001', name: '2D Barcode Scanner', desc: 'Barcode Scanner', price: 220.00, monthly: false },
+              { id: 'cat2-1', name: 'A35 Payment Terminal', desc: 'Payment Terminal', price: 395.00, monthly: false },
+              { id: 'cat3-0', name: 'Thermal Printer', desc: 'Receipt Printer', price: 185.00, monthly: false },
+              { id: 'cat5-1', name: 'PoS Licence', desc: 'Monthly License', price: 240.00, monthly: true }
             ] },
-          { name: 'Lolly Evoq PoS Terminal (ET006)', desc: 'Advanced EPoS Terminal', price: 1750.00, monthly: false, image: 'img/Lolly Evoq.png', labels: ['Regular','Self-Serve'], addons: [
-              { id: 'addon-rear-et006a', name: 'Lolly Evoq PoS Rear Display (ET006a)', price: 275.00, desc: 'Professional Rear Display' },
-              { id: 'addon-scanner-sc001', name: '2D Barcode Scanner (SC001)', desc: 'Barcode Scanner', price: 220.00, monthly: false },
-              { id: 'cat2-1', name: 'A35 Payment Terminal (PT016)', desc: 'Payment Terminal', price: 395.00, monthly: false },
-              { id: 'cat3-0', name: 'Thermal Printer (PR001)', desc: 'Receipt Printer', price: 185.00, monthly: false },
-              { id: 'cat5-1', name: 'PoS Licence (LIC04)', desc: 'Monthly License', price: 240.00, monthly: true }
-            ] },
-          { name: 'Lolly Move PoS Terminal (ET009)', desc: 'Mobile EPoS Terminal', price: 355.00, monthly: false, image: 'img/Lolly Move.webp', labels: ['Mobile'], addons: [
-              { id: 'cat2-0', name: 'Lolly Move Charging Cradle (PT004b)', desc: 'Charging Solution', price: 72.00, monthly: false },
-              { id: 'cat5-2', name: 'Move Licence (LIC03)', desc: 'Monthly License', price: 120.00, monthly: true }
+          { name: 'Lolly Move', desc: 'Mobile EPoS Terminal', price: 355.00, monthly: false, image: 'img/Lolly Move.webp', labels: ['Mobile'], addons: [
+              { id: 'cat2-0', name: 'Lolly Move Charging Cradle', desc: 'Charging Solution', price: 72.00, monthly: false },
+              { id: 'cat5-2', name: 'Move Licence', desc: 'Monthly License', price: 120.00, monthly: true }
             ] }
         ],
         cat2: [
-          { name: 'Lolly Move Charging Cradle (PT004b)', desc: 'Charging Solution', price: 72.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'A35 Payment Terminal (PT016)', desc: 'Payment Terminal', price: 395.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Q25 Payment Terminal (PT011)', desc: 'Compact Payment Terminal', price: 199.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'SnapServe Kiosk (SS001)', desc: 'Self-Service Kiosk', price: 3800.00, monthly: false, image: '', labels: ['Self-Serve'], addons: [] },
-          { name: 'Swift Serve Kiosk (SA005)', desc: 'Self-Service Kiosk Solution', price: 1795.00, monthly: false, image: '', labels: ['Self-Serve'], addons: [{ id: 'addon-stand-sa005a', name: 'Swift Serve Floor Stand (SA005a)', price: 400.00, desc: 'Kiosk Floor Stand' }] },
-          { name: 'Swift Serve Floor Stand (SA005a)', desc: 'Kiosk Floor Stand', price: 400.00, monthly: false, image: '', labels: [], addons: [] }
+          { name: '32" Digital Signage Screen', desc: 'Digital Display | (MO004)', price: 320.00, monthly: false, image: '', labels: [], addons: [{ id: 'addon-mount-22', name: '22" Desk Mount', price: 30.00, desc: 'Mounting Hardware' }] },
+          { name: '43" Digital Signage Screen', desc: 'Large Digital Display | (MO005)', price: 795.00, monthly: false, image: '', labels: [], addons: [{ id: 'addon-mount-43-desk', name: '43" Desk Mount', price: 25.00, desc: 'Desk Mounting Solution' }, { id: 'addon-mount-43-wall', name: '43" Wall Mount', price: 38.50, desc: 'Wall Mounting Solution' }] },
+          { name: '22" Desk Mount', desc: 'Mounting Hardware', price: 30.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: '43" Desk Mount', desc: 'Desk Mounting Solution', price: 25.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: '43" Wall Mount', desc: 'Wall Mounting Solution', price: 38.50, monthly: false, image: '', labels: [], addons: [] }
         ],
         cat3: [
+          { name: 'Lolly Move Charging Cradle', desc: 'Charging Solution', price: 72.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'A35 Payment Terminal', desc: 'Payment Terminal', price: 395.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'SnapServe - AI Tray Reader', desc: 'Self-Service Kiosk', price: 3800.00, monthly: false, image: '', labels: ['Self-Serve'], addons: [] },
+          { name: 'Swift Serve Kiosk', desc: 'Self-Service Kiosk Solution', price: 1795.00, monthly: false, image: '', labels: ['Self-Serve'], addons: [{ id: 'addon-stand-sa005a', name: 'Swift Serve Floor Stand (SA005a)', price: 400.00, desc: 'Kiosk Floor Stand' }] },
+        ],
+        cat4: [
           { name: 'Thermal Printer (PR001)', desc: 'Receipt Printer', price: 185.00, monthly: false, image: '', labels: [], addons: [] },
           { name: 'Thermal Label Printer (PR003)', desc: 'Label Printer', price: 245.00, monthly: false, image: '', labels: [], addons: [] },
           { name: 'Brother Label Printer (PR010)', desc: 'Label Printer', price: 195.00, monthly: false, image: '', labels: [], addons: [] },
@@ -856,52 +856,45 @@
           { name: 'KDS (Android) (PR002a)', desc: 'Kitchen Display System', price: 275.00, monthly: false, image: '', labels: [], addons: [{ id: 'addon-stand-pr003', name: 'KDS Tablet Stand (PR003)', price: 165.00, desc: 'Display Stand' }] },
           { name: 'KDS Tablet Stand (PR003)', desc: 'Display Stand', price: 165.00, monthly: false, image: '', labels: [], addons: [] }
         ],
-        cat4: [
-          { name: '32" Digital Signage Screen (MO004)', desc: 'Digital Display', price: 320.00, monthly: false, image: '', labels: [], addons: [{ id: 'addon-mount-22', name: '22" Desk Mount', price: 30.00, desc: 'Mounting Hardware' }] },
-          { name: '43" Digital Signage Screen (MO005)', desc: 'Large Digital Display', price: 795.00, monthly: false, image: '', labels: [], addons: [{ id: 'addon-mount-43-desk', name: '43" Desk Mount', price: 25.00, desc: 'Desk Mounting Solution' }, { id: 'addon-mount-43-wall', name: '43" Wall Mount', price: 38.50, desc: 'Wall Mounting Solution' }] },
-          { name: '22" Desk Mount', desc: 'Mounting Hardware', price: 30.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: '43" Desk Mount', desc: 'Desk Mounting Solution', price: 25.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: '43" Wall Mount', desc: 'Wall Mounting Solution', price: 38.50, monthly: false, image: '', labels: [], addons: [] }
-        ],
         cat5: [
-          { name: 'Lolly HQ Cloud Hosting (LIC01)', desc: 'Per Site - Monthly', price: 180.00, monthly: true, image: '', labels: [], addons: [] },
-          { name: 'PoS Licence (LIC04)', desc: 'Monthly License', price: 240.00, monthly: true, image: '', labels: [], addons: [] },
-          { name: 'Move Licence (LIC03)', desc: 'Monthly License', price: 120.00, monthly: true, image: '', labels: [], addons: [] },
-          { name: 'Self Serve / App / Web Order Licence (LIC006)', desc: 'Up to 3 instances - Monthly', price: 1080.00, monthly: true, image: '', labels: [], addons: [] },
-          { name: 'Additional Order Licence (LIC007)', desc: 'Monthly License', price: 480.00, monthly: true, image: '', labels: [], addons: [] },
-          { name: 'KVS / Order & Collect License (LIC009)', desc: 'Monthly License', price: 60.00, monthly: true, image: '', labels: [], addons: [] },
+          { name: 'Lolly HQ Cloud Hosting', desc: 'Per Site - Monthly | (LIC01)', price: 180.00, monthly: true, image: '', labels: [], addons: [] },
+          { name: 'PoS Licence', desc: 'Monthly Licence | (LIC04)', price: 240.00, monthly: true, image: '', labels: [], addons: [] },
+          { name: 'Move Licence', desc: 'Monthly Licence | (LIC03)', price: 120.00, monthly: true, image: '', labels: [], addons: [] },
+          { name: 'Self Serve / App / Web Order Licence', desc: 'Up to 3 instances - Monthly | (LIC006)', price: 1080.00, monthly: true, image: '', labels: [], addons: [] },
+          { name: 'Additional Order Licence', desc: 'Monthly Licence | (LIC007)', price: 480.00, monthly: true, image: '', labels: [], addons: [] },
+          { name: 'KVS / Order & Collect License', desc: 'Monthly Licence | (LIC009), price: 60.00, monthly: true, image: '', labels: [], addons: [] },
           { name: 'Room Ordering Licence', desc: 'Monthly License', price: 240.00, monthly: true, image: '', labels: [], addons: [] },
-          { name: 'SnapServe Licence (LIC08)', desc: 'Monthly License', price: 4560.00, monthly: true, image: '', labels: [], addons: [] },
-          { name: 'Payment Terminal Integration (LIC021)', desc: 'Monthly Integration Fee', price: 132.00, monthly: true, image: '', labels: [], addons: [] },
-          { name: 'Terminal Setup Fee (SER068)', desc: 'Device Setup Fee', price: 27.50, monthly: false, image: '', labels: [], addons: [] }
+          { name: 'SnapServe Licence', desc: 'Monthly Licence | (LIC08)', price: 4560.00, monthly: true, image: '', labels: [], addons: [] },
+          { name: 'Payment Terminal Integration', desc: 'Monthly Integration Fee | (LIC021)', price: 132.00, monthly: true, image: '', labels: [], addons: [] },
+          { name: 'Terminal Setup Fee', desc: 'Device Setup Fee | (SER068)', price: 27.50, monthly: false, image: '', labels: [], addons: [] }
         ],
         cat6: [
-          { name: 'Site Survey - Full Day (SER01)', desc: 'Professional Site Assessment', price: 385.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'On-Site Install - Full Day (SER03)', desc: 'Installation Service', price: 500.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'On-Site Install - Half Day (SER04)', desc: 'Installation Service', price: 350.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Remote Install (SER02)', desc: 'Remote Installation', price: 110.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Out of Hours Install (SER05)', desc: 'After-Hours Installation', price: 800.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Site Survey - Full Day', desc: 'Professional Site Assessment | (SER01)', price: 385.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'On-Site Install - Full Day', desc: 'Installation Service | (SER03)', price: 500.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'On-Site Install - Half Day', desc: 'Installation Service | (SER04)', price: 350.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Remote Install', desc: 'Remote Installation | (SER02)', price: 110.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Out of Hours Install', desc: 'After-Hours Installation | (SER05)', price: 800.00, monthly: false, image: '', labels: [], addons: [] },
           { name: 'PoS Configuration – Phase 1', desc: 'System Configuration', price: 165.00, monthly: false, image: '', labels: [], addons: [] },
           { name: 'PoS Configuration – Phase 2', desc: 'System Configuration', price: 66.00, monthly: false, image: '', labels: [], addons: [] },
           { name: 'Move Configuration – Phase 1', desc: 'System Configuration', price: 165.00, monthly: false, image: '', labels: [], addons: [] },
           { name: 'Move Configuration – Phase 2', desc: 'System Configuration', price: 66.00, monthly: false, image: '', labels: [], addons: [] },
           { name: 'Self Serve Configuration – Phase 1', desc: 'System Configuration', price: 495.00, monthly: false, image: '', labels: [], addons: [] },
           { name: 'Self Serve Configuration – Phase 2', desc: 'System Configuration', price: 199.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Project Management - Full Day (SER12)', desc: 'Professional Support', price: 660.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Project Management - Half Day (SER13)', desc: 'Professional Support', price: 330.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Development Day (SER33)', desc: 'Custom Development', price: 900.00, monthly: false, image: '', labels: [], addons: [] }
+          { name: 'Project Management - Full Day', desc: 'Professional Support | (SER12)', price: 660.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Project Management - Half Day', desc: 'Professional Support | (SER13)', price: 330.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Development Day', desc: 'Custom Development | (SER33)', price: 900.00, monthly: false, image: '', labels: [], addons: [] }
         ],
         cat7: [
-          { name: 'Go-Live Support - Full (6 Hours) (SER07)', desc: 'Launch Support Package', price: 500.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Go-Live Support - Standard (3 Hours) (SER06)', desc: 'Launch Support Package', price: 330.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Go-Live Support - Out of Hours (SER08)', desc: 'After-Hours Launch Support', price: 800.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Front of House Training (SER09)', desc: 'Half Day On-Site Training', price: 330.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Online Back Office Training (SER10)', desc: '3 Hours Training', price: 385.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'PoS Training (SER34)', desc: 'Hourly Training Rate', price: 70.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Engineer Visit - Full Day (SER31)', desc: 'Technical Support', price: 500.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Engineer Visit - Half Day (SER30)', desc: 'Technical Support', price: 350.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Support Rate (SER32)', desc: 'Hourly Technical Support', price: 70.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Hotel & Subsistence (SER11)', desc: 'Accommodation Support', price: 200.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Go-Live Support - Full (6 Hours)', desc: 'Launch Support Package | (SER07)', price: 500.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Go-Live Support - Standard (3 Hours)', desc: 'Launch Support Package | (SER06)', price: 330.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Go-Live Support - Out of Hours', desc: 'After-Hours Launch Support | (SER08)', price: 800.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Front of House Training', desc: 'Half Day On-Site Training | (SER09)', price: 330.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Online Back Office Training', desc: '3 Hours Training | (SER10)', price: 385.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'PoS Training', desc: 'Hourly Training Rate | (SER34)', price: 70.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Engineer Visit - Full Day', desc: 'Technical Support | (SER31)', price: 500.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Engineer Visit - Half Day', desc: 'Technical Support | (SER30)', price: 350.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Support Rate', desc: 'Hourly Technical Support | (SER32)', price: 70.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Hotel & Subsistence', desc: 'Accommodation Support | (SER11)', price: 200.00, monthly: false, image: '', labels: [], addons: [] },
           { name: 'Apple iOS Developer Licence (Annual)', desc: 'Annual Apple Developer Licence', price: 79.99, monthly: false, image: '', labels: [], addons: [] }
         ]
       };
