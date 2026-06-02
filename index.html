@@ -491,14 +491,14 @@
     <!-- Tier section removed per user request -->
 
     <!-- OUTLET SELECTION TABS -->
-    <div class="flex justify-center mb-6">
+    <div id="outlet-tabs-container" class="hidden flex justify-center mb-6">
       <div id="outlet-tabs" class="flex flex-wrap justify-center gap-2 bg-gray-100 rounded-lg px-4 py-3">
         <!-- Outlet tabs will be generated here based on number of outlets -->
       </div>
     </div>
 
     <!-- CATEGORY TABS -->
-    <div class="flex justify-center mb-4">
+    <div id="category-tabs-container" class="hidden flex justify-center mb-4">
       <div id="tabs" class="flex flex-wrap justify-center gap-2 bg-white shadow-md rounded-full px-4 py-2">
         <button class="tab-btn active px-4 py-2 rounded-full font-semibold text-gray-700" data-tab="cat1">
           PoS Terminals
@@ -525,12 +525,12 @@
     </div>
 
     <!-- CATEGORY CONTENT -->
-    <div id="category-content" class="bg-white shadow-lg rounded-lg p-6 min-h-[400px]">
+    <div id="category-content" class="hidden bg-white shadow-lg rounded-lg p-6 min-h-[400px]">
       <p class="text-center text-gray-600">Select a category above</p>
     </div>
 
     <!-- TOTAL SECTION -->
-    <div class="total-section text-white rounded-lg p-8 text-center mt-10">
+    <div id="quote-summary-section" class="hidden total-section text-white rounded-lg p-8 text-center mt-10">
       <h2 class="text-3xl font-bold mb-6">Order Summary</h2>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto mb-4">
@@ -661,6 +661,18 @@
   </div>
 
   </div>
+  <div id="copy-outlet-modal" class="modal-overlay hidden">
+    <div class="modal p-6">
+      <h3 class="text-lg font-bold mb-3">Copy selections from another outlet?</h3>
+      <p class="text-sm text-gray-600 mb-4">This outlet has no items yet. Select a previously populated outlet to copy its selections into this outlet, or choose not to copy and continue with an empty outlet.</p>
+      <div id="copy-outlet-options" class="space-y-3 max-h-64 overflow-y-auto mb-4"></div>
+      <div class="flex justify-end gap-3">
+        <button id="copy-outlet-skip" class="px-4 py-2 bg-white border rounded text-gray-700 hover:bg-gray-100">Don't copy</button>
+        <button id="copy-outlet-cancel" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div id="addons-modal" class="hidden fixed inset-0 z-40 bg-black/50 flex items-center justify-center px-4 py-6">
     <div class="addons-modal-content">
       <div class="addons-modal-header">
@@ -725,13 +737,78 @@
       return (item.selectedAddons || []).reduce((sum, addon) => sum + (addon.price || 0), 0);
     }
 
-    function getItemAnnualTotal(item) {
-      return (item.price + getItemAddonTotal(item)) * item.qty;
+    function getItemAddonHardwareTotal(item) {
+      return (item.selectedAddons || []).reduce((sum, addon) => sum + ((addon.monthly ? 0 : addon.price) || 0), 0);
+    }
+
+    function getItemAddonMonthlyTotal(item) {
+      return (item.selectedAddons || []).reduce((sum, addon) => sum + ((addon.monthly ? addon.price : 0) || 0), 0);
+    }
+
+    function getItemHardwareTotal(item) {
+      const baseHardware = item.monthly ? 0 : item.price * item.qty;
+      const addonHardware = getItemAddonHardwareTotal(item) * item.qty;
+      return baseHardware + addonHardware;
     }
 
     function getItemMonthlyTotal(item) {
-      if (!item.monthly) return 0;
-      return getItemAnnualTotal(item) / 12;
+      const baseMonthly = item.monthly ? item.price * item.qty : 0;
+      const addonMonthly = getItemAddonMonthlyTotal(item) * item.qty;
+      return baseMonthly + addonMonthly;
+    }
+
+    function getItemAnnualTotal(item) {
+      return getItemHardwareTotal(item) + getItemMonthlyTotal(item) * 12;
+    }
+
+    function getProductItemById(id) {
+      const match = /^([^-]+)-(\d+)$/.exec(id);
+      if (!match) return null;
+      const category = match[1];
+      const index = parseInt(match[2], 10);
+      const item = products[category] && products[category][index];
+      return item ? { category, index, item } : null;
+    }
+
+    function syncAddonProductsForOutlet(outletId) {
+      if (!selectedState[outletId]) return;
+      const outletItems = selectedState[outletId];
+      const addonCounts = {};
+
+      Object.values(outletItems).forEach(item => {
+        const qty = item.qty || 0;
+        (item.selectedAddons || []).forEach(addon => {
+          const ref = getProductItemById(addon.id);
+          if (ref) {
+            addonCounts[addon.id] = (addonCounts[addon.id] || 0) + qty;
+          }
+        });
+      });
+
+      Object.entries(addonCounts).forEach(([addonId, qty]) => {
+        const ref = getProductItemById(addonId);
+        if (!ref) return;
+        const existing = selectedState[outletId][addonId] || {};
+        selectedState[outletId][addonId] = {
+          id: addonId,
+          name: ref.item.name,
+          price: ref.item.price,
+          monthly: ref.item.monthly,
+          category: ref.category,
+          labels: ref.item.labels || [],
+          qty,
+          selectedAddons: existing.selectedAddons || [],
+          isAutoAddonSelection: existing.isAutoAddonSelection === false ? false : true
+        };
+      });
+
+      Object.keys(outletItems).forEach(key => {
+        const ref = getProductItemById(key);
+        if (!ref) return;
+        if (!addonCounts[key] && outletItems[key].isAutoAddonSelection) {
+          delete selectedState[outletId][key];
+        }
+      });
     }
 
     function mergeProductsWithDefaults(defaultProducts, storedProducts) {
@@ -806,6 +883,8 @@
       if (savedState.intakeData && typeof savedState.intakeData === 'object') {
         intakeData = { ...intakeData, ...savedState.intakeData };
       }
+
+      syncAddonProductsForOutlet(currentOutlet);
     }
 
     function initializeProducts() {
@@ -813,48 +892,53 @@
         cat1: [
           { name: 'Lolly Wave', desc: 'EPoS Terminal', price: 895.00, monthly: false, image: 'img/Lolly Wave.webp', labels: ['Regular','Self-Serve'], addons: [
               { id: 'addon-rear-et024a', name: 'Lolly Wave PoS Rear Display (ET024a)', price: 200.00, desc: 'Rear Customer Display' },
-              { id: 'cat3-0', name: 'Thermal Printer (PR001)', desc: 'Receipt Printer', price: 185.00, monthly: false },
-              { id: 'cat2-1', name: 'A35 Payment Terminal (PT016)', desc: 'Payment Terminal', price: 395.00, monthly: false },
-              { id: 'cat3-3', name: '2D Barcode Scanner (SC001)', desc: 'Barcode Scanner', price: 220.00, monthly: false },
-              { id: 'cat5-1', name: 'PoS Licence (LIC04)', desc: 'Monthly License', price: 240.00, monthly: true }
+              { id: 'cat4-0', name: 'Thermal Printer (PR001)', desc: 'Receipt Printer', price: 185.00, monthly: false },
+              { id: 'cat4-4', name: '2D Barcode Scanner (SC001)', desc: 'Barcode Scanner', price: 220.00, monthly: false },
+              { id: 'cat5-1', name: 'PoS Licence (LIC04)', desc: 'Monthly License', price: 240.00, monthly: true },
+              { id: 'cat3-1', name: 'A35 Payment Terminal', price: 108.00, monthly: false },
+              { id: 'cat5-8', name: 'Payment Terminal Integration', price: 132.00, monthly: true },
+              { id: 'cat5-9', name: 'Terminal Setup Fee', price: 7.50, monthly: false }
             ] },
            { name: 'Lolly Evoq', desc: 'Advanced EPoS Terminal', price: 1750.00, monthly: false, image: 'img/Lolly Evoq.png', labels: ['Regular','Self-Serve'], addons: [
               { id: 'addon-rear-et006a', name: 'Lolly Evoq PoS Rear Display', price: 275.00, desc: 'Professional Rear Display' },
               { id: 'addon-scanner-sc001', name: '2D Barcode Scanner', desc: 'Barcode Scanner', price: 220.00, monthly: false },
-              { id: 'cat2-1', name: 'A35 Payment Terminal', desc: 'Payment Terminal', price: 395.00, monthly: false },
-              { id: 'cat3-0', name: 'Thermal Printer', desc: 'Receipt Printer', price: 185.00, monthly: false },
-              { id: 'cat5-1', name: 'PoS Licence', desc: 'Monthly License', price: 240.00, monthly: true }
+              { id: 'cat4-0', name: 'Thermal Printer', desc: 'Receipt Printer', price: 185.00, monthly: false },
+              { id: 'cat5-1', name: 'PoS Licence', desc: 'Monthly License', price: 240.00, monthly: true },
+              { id: 'cat3-1', name: 'A35 Payment Terminal', price: 108.00, monthly: false },
+              { id: 'cat5-8', name: 'Payment Terminal Integration', price: 132.00, monthly: true },
+              { id: 'cat5-9', name: 'Terminal Setup Fee', price: 7.50, monthly: false }
             ] },
           { name: 'Lolly Move', desc: 'Mobile EPoS Terminal', price: 355.00, monthly: false, image: 'img/Lolly Move.webp', labels: ['Mobile'], addons: [
-              { id: 'cat2-0', name: 'Lolly Move Charging Cradle', desc: 'Charging Solution', price: 72.00, monthly: false },
-              { id: 'cat5-2', name: 'Move Licence', desc: 'Monthly License', price: 120.00, monthly: true }
+              { id: 'cat3-0', name: 'Lolly Move Charging Cradle', desc: 'Charging Solution', price: 72.00, monthly: false },
+              { id: 'cat5-2', name: 'Move Licence', desc: 'Monthly License', price: 120.00, monthly: true },
+              { id: 'cat3-1', name: 'A35 Payment Terminal', price: 108.00, monthly: false },
+              { id: 'cat5-8', name: 'Payment Terminal Integration', price: 132.00, monthly: true },
+              { id: 'cat5-9', name: 'Terminal Setup Fee', price: 7.50, monthly: false }
             ] }
         ],
         cat2: [
-          { name: 'Bespoke App', desc: 'Digital Display | (MO004)', price: 320.00, monthly: false, image: '', labels: [], addons: [{ id: 'addon-mount-22', name: '22" Desk Mount', price: 30.00, desc: 'Mounting Hardware' }] },
-          { name: '43" Digital Signage Screen', desc: 'Large Digital Display | (MO005)', price: 795.00, monthly: false, image: '', labels: [], addons: [{ id: 'addon-mount-43-desk', name: '43" Desk Mount', price: 25.00, desc: 'Desk Mounting Solution' }, { id: 'addon-mount-43-wall', name: '43" Wall Mount', price: 38.50, desc: 'Wall Mounting Solution' }] },
-          { name: '22" Desk Mount', desc: 'Mounting Hardware', price: 30.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: '43" Desk Mount', desc: 'Desk Mounting Solution', price: 25.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: '43" Wall Mount', desc: 'Wall Mounting Solution', price: 38.50, monthly: false, image: '', labels: [], addons: [] }
-        ],
+          { name: 'Bespoke App', desc: 'Bespoke App', price: 550.00, monthly: false, image: '', labels: [], addons: [] }
+          ],
         cat3: [
           { name: 'Lolly Move Charging Cradle', desc: 'Charging Solution', price: 72.00, monthly: false, image: '', labels: [], addons: [] },
           { name: 'A35 Payment Terminal', desc: 'Annual Payment', price: 108.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'SnapServe - AI Tray Reader', desc: 'Self-Service Kiosk', price: 3800.00, monthly: false, image: '', labels: ['Self-Serve'], addons: [] },
+          { name: 'SnapServe - AI Tray Reader', desc: 'Self-Service Kiosk', price: 3800.00, monthly: false, image: '', labels: ['Self-Serve'], addons: [
+              { id: 'addon-snapserve-licence', name: 'SnapServe Licence (LIC08)', desc: 'Monthly Licence', price: 4560.00, monthly: true },
+              { id: 'addon-pos-licence', name: 'PoS Licence (LIC04)', desc: 'Monthly Licence', price: 240.00, monthly: true }
+            ] },
           { name: 'Swift Serve Kiosk', desc: 'Self-Service Kiosk Solution', price: 1795.00, monthly: false, image: '', labels: ['Self-Serve'], addons: [{ id: 'addon-stand-sa005a', name: 'Swift Serve Floor Stand (SA005a)', price: 400.00, desc: 'Kiosk Floor Stand' }] }
         ],
         cat4: [
           { name: 'Thermal Printer', desc: 'Receipt Printer | (PR001)', price: 185.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Thermal Label Printer (PR003)', desc: 'Label Printer', price: 245.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Brother Label Printer (PR010)', desc: 'Label Printer', price: 195.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: '2D Barcode Scanner (SC001)', desc: 'Barcode Scanner', price: 220.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Cash Drawer (CD002)', desc: 'Standard Cash Drawer', price: 65.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Lolly Wave PoS Rear Display (ET024a)', desc: 'Rear Customer Display', price: 200.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Lolly Pro PoS Rear Display (ET006a)', desc: 'Professional Rear Display', price: 275.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'Barista KVS (ET010)', desc: 'Kitchen Management System', price: 495.00, monthly: false, image: '', labels: [], addons: [{ id: 'addon-printer-pr002', name: 'Kitchen Printer (PR002)', price: 260.00, desc: 'Kitchen Order Printer' }, { id: 'addon-kds-pr002a', name: 'KDS (Android) (PR002a)', price: 275.00, desc: 'Kitchen Display System' }] },
-          { name: 'Kitchen Printer (PR002)', desc: 'Kitchen Order Printer', price: 260.00, monthly: false, image: '', labels: [], addons: [] },
-          { name: 'KDS (Android) (PR002a)', desc: 'Kitchen Display System', price: 275.00, monthly: false, image: '', labels: [], addons: [{ id: 'addon-stand-pr003', name: 'KDS Tablet Stand (PR003)', price: 165.00, desc: 'Display Stand' }] },
-          { name: 'KDS Tablet Stand (PR003)', desc: 'Display Stand', price: 165.00, monthly: false, image: '', labels: [], addons: [] }
+          { name: 'Thermal Label Printer', desc: 'Label Printer | (PR003)', price: 245.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Brother Label Printer', desc: 'Label Printer | (PR010)', price: 195.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Kitchen Printer', desc: 'Kitchen Order Printer | (PR002)', price: 260.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: '2D Barcode Scanner', desc: 'Barcode Scanner | (SC001)', price: 220.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Cash Drawer', desc: 'Standard Cash Drawer | (CD002)', price: 65.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Countermount Pole (Single) CP001', desc: 'Single Countermount Pole', price: 55.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Lolly Wave PoS Rear Display', desc: 'Rear Customer Display | (ET024a)', price: 200.00, monthly: false, image: '', labels: [], addons: [] },
+          { name: 'Barista KVS', desc: 'Kitchen Management System | (ET010)', price: 495.00, monthly: false, image: '', labels: [], addons: [{ id: 'addon-printer-pr002', name: 'Kitchen Printer (PR002)', price: 260.00, desc: 'Kitchen Order Printer' }, { id: 'addon-kds-pr002a', name: 'KDS (Android) (PR002a)', price: 275.00, desc: 'Kitchen Display System' }] },
+          { name: 'KDS (Android)', desc: 'Kitchen Display System | (PR002a)', price: 275.00, monthly: false, image: '', labels: [], addons: [{ id: 'addon-stand-pr003', name: 'KDS Tablet Stand (PR003)', price: 165.00, desc: 'Display Stand' }] }
         ],
         cat5: [
           { name: 'Lolly HQ Cloud Hosting', desc: 'Per Site - Monthly | (LIC01)', price: 15.00, monthly: true, image: '', labels: [], addons: [] },
@@ -862,7 +946,7 @@
           { name: 'Move Licence', desc: 'Monthly Licence | (LIC03)', price: 120.00, monthly: true, image: '', labels: [], addons: [] },
           { name: 'Self Serve / App (Per Location) / Web Order Licence', desc: 'Up to 3 instances - Monthly | (LIC006)', price: 90.00, monthly: true, image: '', labels: [], addons: [] },
           { name: 'Additional Order Licence', desc: 'Monthly Licence | (LIC007)', price: 480.00, monthly: true, image: '', labels: [], addons: [] },
-          { name: 'KVS / Order & Collect License', desc: 'Monthly Licence | (LIC009), price: 5.00, monthly: true, image: '', labels: [], addons: [] },
+          { name: 'KVS / Order & Collect License', desc: 'Monthly Licence | (LIC009)', price: 5.00, monthly: true, image: '', labels: [], addons: [] },
           { name: 'Room Ordering Licence', desc: 'Monthly License', price: 240.00, monthly: true, image: '', labels: [], addons: [] },
           { name: 'SnapServe Licence', desc: 'Monthly Licence | (LIC08)', price: 4560.00, monthly: true, image: '', labels: [], addons: [] },
           { name: 'Payment Terminal Integration', desc: 'Monthly Integration Fee | (LIC021)', price: 132.00, monthly: true, image: '', labels: [], addons: [] },
@@ -989,11 +1073,27 @@
       
       // Initialize outlet tabs now that intake form is complete
       initializeOutletTabs();
+      showQuoteSections();
     }
 
     function showIntakeForm() {
       document.getElementById('intake-form-section').classList.remove('hidden');
       document.getElementById('intake-display-section').classList.add('hidden');
+      hideQuoteSections();
+    }
+
+    function showQuoteSections() {
+      document.getElementById('outlet-tabs-container').classList.remove('hidden');
+      document.getElementById('category-tabs-container').classList.remove('hidden');
+      document.getElementById('category-content').classList.remove('hidden');
+      document.getElementById('quote-summary-section').classList.remove('hidden');
+    }
+
+    function hideQuoteSections() {
+      document.getElementById('outlet-tabs-container').classList.add('hidden');
+      document.getElementById('category-tabs-container').classList.add('hidden');
+      document.getElementById('category-content').classList.add('hidden');
+      document.getElementById('quote-summary-section').classList.add('hidden');
     }
 
     // Outlets +/- buttons
@@ -1125,12 +1225,18 @@
             const existing = selectedState[currentOutlet][id] || {};
             const currentQty = existing.qty || 0;
             if (currentQty === 0 && item.addons && item.addons.length > 0) {
-              const itemData = { id, name: item.name, price: item.price, monthly: item.monthly, category, labels: item.labels || [], qty: 1, selectedAddons: [] };
+              // Auto-select payment terminal addons for cat1 products
+              let autoSelectedAddons = [];
+              if (category === 'cat1') {
+                autoSelectedAddons = item.addons.filter(addon => ['cat3-1', 'cat5-8', 'cat5-9'].includes(addon.id));
+              }
+              const itemData = { id, name: item.name, price: item.price, monthly: item.monthly, category, labels: item.labels || [], qty: 1, selectedAddons: autoSelectedAddons };
               showAddonsModal(item, itemData, (selectedAddons) => {
                 selectedState[currentOutlet][id] = {
                   ...itemData,
                   selectedAddons
                 };
+                syncAddonProductsForOutlet(currentOutlet);
                 loadCategory(category);
                 calculateTotals();
               });
@@ -1142,7 +1248,8 @@
                 price: item.price,
                 qty: currentQty + 1,
                 monthly: item.monthly,
-                labels: existing.labels || item.labels || []
+                labels: existing.labels || item.labels || [],
+                isAutoAddonSelection: false
               };
             }
           } else if (btn.classList.contains('qty-minus')) {
@@ -1154,6 +1261,7 @@
             }
           }
           
+          syncAddonProductsForOutlet(currentOutlet);
           loadCategory(category);
           calculateTotals();
         });
@@ -1177,11 +1285,17 @@
           
           // If not selected, show add-ons modal if available, else add directly
           if (!selectedState[currentOutlet][id]) {
-            const itemData = { id, name: item.name, price: item.price, monthly: item.monthly, category, labels: item.labels || [], qty: 1, selectedAddons: [] };
+            // Auto-select payment terminal addons for cat1 products
+            let autoSelectedAddons = [];
+            if (category === 'cat1') {
+              autoSelectedAddons = item.addons.filter(addon => ['cat3-1', 'cat5-8', 'cat5-9'].includes(addon.id));
+            }
+            const itemData = { id, name: item.name, price: item.price, monthly: item.monthly, category, labels: item.labels || [], qty: 1, selectedAddons: autoSelectedAddons };
             if (item.addons && item.addons.length > 0) {
               showAddonsModal(item, itemData, (selectedAddons) => {
                 itemData.selectedAddons = selectedAddons;
                 selectedState[currentOutlet][id] = { ...itemData };
+                syncAddonProductsForOutlet(currentOutlet);
                 loadCategory(category);
                 calculateTotals();
               });
@@ -1211,20 +1325,21 @@
         
         for (const itemId in items) {
           const item = items[itemId];
-          const addonTotal = (item.selectedAddons || []).reduce((sum, addon) => sum + (addon.price || 0), 0);
-          const lineTotal = (item.price + addonTotal) * item.qty;
-          // Add-on display logic
-          let addonsHTML = '';
-          if (item.selectedAddons && item.selectedAddons.length > 0) {
-            addonsHTML = `<div class="ml-4 text-xs text-gray-600">Add-ons:<ul class="list-disc ml-4">${item.selectedAddons.map(a => `<li>${a.name} (£${a.price.toFixed(2)})</li>`).join('')}</ul></div>`;
+          const hardwareLineTotal = getItemHardwareTotal(item);
+          const monthlyLineTotal = getItemMonthlyTotal(item);
+          const hardwareAddonsHTML = (item.selectedAddons || []).filter(addon => !addon.monthly).map(addon => `<li>${addon.name} (×${item.qty}) £${addon.price.toFixed(2)}</li>`).join('');
+          const monthlyAddonsHTML = (item.selectedAddons || []).filter(addon => addon.monthly).map(addon => `<li>${addon.name} (×${item.qty}) £${addon.price.toFixed(2)} /mo</li>`).join('');
+          const hardwareAddonsBlock = hardwareAddonsHTML ? `<div class="ml-4 text-xs text-gray-600">Hardware Add-ons:<ul class="list-disc ml-4">${hardwareAddonsHTML}</ul></div>` : '';
+          const monthlyAddonsBlock = monthlyAddonsHTML ? `<div class="ml-4 text-xs text-gray-600">Monthly Add-ons:<ul class="list-disc ml-4">${monthlyAddonsHTML}</ul></div>` : '';
+
+          if (hardwareLineTotal > 0) {
+            outletHardware += hardwareLineTotal;
+            hardwareHTML += `<div class="flex flex-col mb-1 text-gray-800"><div class="flex justify-between text-sm"><span>${item.name} (×${item.qty})</span><span class="font-medium">£${hardwareLineTotal.toFixed(2)}</span></div>${hardwareAddonsBlock}</div>`;
           }
-          if (item.monthly) {
-            const monthlyLineTotal = getItemMonthlyTotal(item);
+
+          if (monthlyLineTotal > 0) {
             outletMonthly += monthlyLineTotal;
-            monthlyHTML += `<div class="flex flex-col mb-1 text-gray-800"><div class="flex justify-between text-sm"><span>${item.name} (×${item.qty})</span><span class="font-medium">£${monthlyLineTotal.toFixed(2)} /mo</span></div>${addonsHTML}</div>`;
-          } else {
-            outletHardware += lineTotal;
-            hardwareHTML += `<div class="flex flex-col mb-1 text-gray-800"><div class="flex justify-between text-sm"><span>${item.name} (×${item.qty})</span><span class="font-medium">£${lineTotal.toFixed(2)}</span></div>${addonsHTML}</div>`;
+            monthlyHTML += `<div class="flex flex-col mb-1 text-gray-800"><div class="flex justify-between text-sm"><span>${item.name} (×${item.qty})</span><span class="font-medium">£${monthlyLineTotal.toFixed(2)} /mo</span></div>${monthlyAddonsBlock}</div>`;
           }
         }
         
@@ -1254,6 +1369,32 @@
       document.getElementById('monthly-total').textContent = monthlyTotal.toFixed(2);
     }
 
+    function getFlattenedSelectedItems() {
+      return Object.values(selectedState).flatMap(outlet =>
+        Object.values(outlet).flatMap(item => {
+          const flattened = [{
+            ...item,
+            isAddon: false
+          }];
+
+          if (item.selectedAddons && item.selectedAddons.length > 0) {
+            item.selectedAddons.forEach(addon => {
+              flattened.push({
+                ...addon,
+                qty: item.qty,
+                category: item.category,
+                labels: item.labels || [],
+                parentItem: item.name,
+                isAddon: true
+              });
+            });
+          }
+
+          return flattened;
+        })
+      );
+    }
+
     document.getElementById('clear-all').addEventListener('click', () => {
       selectedState = {};
       currentOutlet = 1;
@@ -1276,14 +1417,34 @@
         btn.textContent = `Outlet ${i}`;
         btn.dataset.outlet = i;
         btn.addEventListener('click', () => {
-          currentOutlet = i;
-          document.querySelectorAll('.outlet-tab-btn').forEach(b => {
-            b.classList.remove('bg-blue-600', 'text-white');
-            b.classList.add('bg-white', 'text-gray-700', 'border', 'border-gray-300');
-          });
-          btn.classList.add('bg-blue-600', 'text-white');
-          btn.classList.remove('bg-white', 'text-gray-700', 'border', 'border-gray-300');
-          
+          const targetOutlet = i;
+          if (targetOutlet === currentOutlet) {
+            return;
+          }
+
+          const targetState = selectedState[targetOutlet] || {};
+          const targetHasItems = Object.keys(targetState).length > 0;
+          const sourceOutlets = Object.keys(selectedState)
+            .map(Number)
+            .filter(outletId => outletId !== targetOutlet && selectedState[outletId] && Object.keys(selectedState[outletId]).length > 0)
+            .sort((a, b) => a - b);
+
+          if (!targetHasItems && sourceOutlets.length > 0) {
+            showCopyOutletModal(targetOutlet, sourceOutlets, (sourceOutlet) => {
+              selectedState[targetOutlet] = JSON.parse(JSON.stringify(selectedState[sourceOutlet]));
+              currentOutlet = targetOutlet;
+              setCurrentOutletButton(btn);
+              const activeTab = document.querySelector('.tab-btn.active');
+              if (activeTab) {
+                loadCategory(activeTab.dataset.tab);
+              }
+              calculateTotals();
+            });
+            return;
+          }
+
+          currentOutlet = targetOutlet;
+          setCurrentOutletButton(btn);
           const activeTab = document.querySelector('.tab-btn.active');
           if (activeTab) {
             loadCategory(activeTab.dataset.tab);
@@ -1291,6 +1452,50 @@
         });
         outletTabsContainer.appendChild(btn);
       }
+    }
+
+    function setCurrentOutletButton(btn) {
+      document.querySelectorAll('.outlet-tab-btn').forEach(b => {
+        b.classList.remove('bg-blue-600', 'text-white');
+        b.classList.add('bg-white', 'text-gray-700', 'border', 'border-gray-300');
+      });
+      btn.classList.add('bg-blue-600', 'text-white');
+      btn.classList.remove('bg-white', 'text-gray-700', 'border', 'border-gray-300');
+    }
+
+    function showCopyOutletModal(targetOutlet, sourceOutletIds, onSelect) {
+      const modal = document.getElementById('copy-outlet-modal');
+      const options = document.getElementById('copy-outlet-options');
+      options.innerHTML = sourceOutletIds.map(outletId => `
+        <button type="button" class="w-full text-left px-4 py-3 border rounded-lg bg-white hover:bg-gray-50 copy-outlet-source-btn" data-source="${outletId}">
+          Copy from Outlet ${outletId}
+        </button>
+      `).join('');
+
+      options.querySelectorAll('.copy-outlet-source-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const source = Number(btn.dataset.source);
+          modal.classList.add('hidden');
+          onSelect(source);
+        });
+      });
+
+      document.getElementById('copy-outlet-cancel').onclick = () => {
+        modal.classList.add('hidden');
+      };
+
+      document.getElementById('copy-outlet-skip').onclick = () => {
+        const btn = document.querySelector(`.outlet-tab-btn[data-outlet="${targetOutlet}"]`);
+        modal.classList.add('hidden');
+        currentOutlet = targetOutlet;
+        setCurrentOutletButton(btn);
+        const activeTab = document.querySelector('.tab-btn.active');
+        if (activeTab) {
+          loadCategory(activeTab.dataset.tab);
+        }
+      };
+
+      modal.classList.remove('hidden');
     }
 
     // ===== QUOTE FINALIZATION =====
@@ -1302,13 +1507,8 @@
         const items = selectedState[outletId];
         for (const itemId in items) {
           const item = items[itemId];
-          const addonTotal = (item.selectedAddons || []).reduce((sum, addon) => sum + (addon.price || 0), 0);
-          const lineTotal = (item.price + addonTotal) * item.qty;
-          if (item.monthly) {
-            monthlyTotal += lineTotal;
-          } else {
-            hardwareTotal += lineTotal;
-          }
+          hardwareTotal += getItemHardwareTotal(item);
+          monthlyTotal += getItemMonthlyTotal(item);
         }
       }
       
@@ -1320,7 +1520,7 @@
       const nameParts = fullName.trim().split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
-      const selectedItems = Object.values(selectedState).flatMap(outlet => Object.values(outlet));
+      const selectedItems = getFlattenedSelectedItems();
       const unique = (items) => [...new Set(items)].join('; ');
       const selectedNames = selectedItems.map(item => item.name);
       const selectedProducts = unique(selectedNames) || 'None';
@@ -1344,13 +1544,8 @@
       let totalHardware = 0;
       let totalAnnualOpex = 0;
       selectedItems.forEach(i => {
-        const addonTotal = (i.selectedAddons || []).reduce((sum, addon) => sum + (addon.price || 0), 0);
-        const lineTotal = (i.price + addonTotal) * i.qty;
-        if (i.monthly) {
-          totalAnnualOpex += lineTotal;
-        } else {
-          totalHardware += lineTotal;
-        }
+        totalHardware += getItemHardwareTotal(i);
+        totalAnnualOpex += getItemMonthlyTotal(i) * 12;
       });
       const totalMonthly = totalAnnualOpex / 12;
       const scopeOverview = `Quote for ${selectedProducts} with ${outletCount} outlet(s). Total hardware £${totalHardware.toFixed(2)}, monthly £${totalMonthly.toFixed(2)}, annual OPEX £${totalAnnualOpex.toFixed(2)}.`;
@@ -1494,7 +1689,7 @@
           const lineDisplay = `${item.name} (×${item.qty}) @ £${item.price.toFixed(2)} = £${lineTotal.toFixed(2)}`;
           
           if (item.selectedAddons && item.selectedAddons.length > 0) {
-            const addonsText = item.selectedAddons.map(a => `  - ${a.name}: £${a.price.toFixed(2)}`).join('\n');
+            const addonsText = item.selectedAddons.map(a => `  - ${a.name} (×${item.qty}) £${a.price.toFixed(2)}${a.monthly ? ' /mo' : ''}`).join('\n');
             if (item.monthly) {
               monthlyItems.push(`${lineDisplay}\n${addonsText}`);
             } else {
@@ -1568,7 +1763,7 @@
       const nameParts = fullName.trim().split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
-      const selectedItems = Object.values(selectedState).flatMap(outlet => Object.values(outlet));
+      const selectedItems = getFlattenedSelectedItems();
       const unique = (items) => [...new Set(items)].join('; ');
       const selectedNames = selectedItems.map(item => item.name);
       const selectedProducts = unique(selectedNames);
@@ -1628,11 +1823,7 @@
       payload.totals.hardwareTotal = totals.hardwareTotal;
       payload.totals.monthlyTotal = totals.monthlyTotal;
       payload.totals.annualOpex = Object.values(selectedState).flatMap(items => Object.values(items)).reduce((sum, item) => {
-        if (item.monthly) {
-          const addonTotal = (item.selectedAddons || []).reduce((n, addon) => n + (addon.price || 0), 0);
-          return sum + (item.price + addonTotal) * item.qty;
-        }
-        return sum;
+        return sum + getItemMonthlyTotal(item) * 12;
       }, 0);
 
       payload.scopeOverview = `Quote for ${selectedProducts || 'no selected products'} with ${intakeData.numberOutlets || 1} outlet(s). Total hardware £${payload.totals.hardwareTotal.toFixed(2)}, monthly £${payload.totals.monthlyTotal.toFixed(2)}, annual OPEX £${payload.totals.annualOpex.toFixed(2)}.`;
@@ -1688,7 +1879,7 @@
             description: item.desc || '',
             quantity: item.qty,
             unitPrice: item.price,
-            addons: (item.selectedAddons || []).map(addon => ({ name: addon.name, price: addon.price, description: addon.desc || '' }))
+            addons: (item.selectedAddons || []).map(addon => ({ name: addon.name, price: addon.price, quantity: item.qty, description: addon.desc || '' }))
           };
 
           if (item.monthly) {
