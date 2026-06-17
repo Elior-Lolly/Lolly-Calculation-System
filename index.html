@@ -4531,6 +4531,16 @@
       return item ? { category, index, item } : null;
     }
 
+    function getProductIdByName(name) {
+      const normalizedName = String(name || '').trim().toLowerCase();
+      if (!normalizedName) return null;
+      for (const [category, items] of Object.entries(products || {})) {
+        const index = (items || []).findIndex(item => String(item.name || '').trim().toLowerCase() === normalizedName);
+        if (index >= 0) return `${category}-${index}`;
+      }
+      return null;
+    }
+
     const PRODUCT_IMAGE_BASE_PATH = 'img/';
 
     function normalizeProductImagePath(image) {
@@ -4656,7 +4666,7 @@
       });
 
       const hasQuoteItems = Object.values(outletItems).some(item => !item.isAutoAddonSelection && (item.qty || 0) > 0);
-      const hqHostingRef = findProductId('Lolly HQ Cloud Hosting');
+      const hqHostingRef = getProductIdByName('Lolly HQ Cloud Hosting');
       if (hasQuoteItems && hqHostingRef) {
         addonCounts[hqHostingRef] = Math.max(addonCounts[hqHostingRef] || 0, 1);
         baselineIds.add(hqHostingRef);
