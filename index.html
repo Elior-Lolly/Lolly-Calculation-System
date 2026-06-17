@@ -4531,11 +4531,13 @@
       return item ? { category, index, item } : null;
     }
 
-    const PRODUCT_IMAGE_BASE_PATH = 'Lolly-Calculator-main/Lolly-Calculator-main/img/';
+    const PRODUCT_IMAGE_BASE_PATH = 'img/';
 
     function normalizeProductImagePath(image) {
       if (!image) return '';
-      if (/^(data:|https?:|file:|Lolly-Calculator-main\/)/i.test(image)) return image;
+      if (/^(data:|https?:|file:)/i.test(image)) return image;
+      image = image.replace(/^Lolly-Calculator-main\/Lolly-Calculator-main\/img\//i, PRODUCT_IMAGE_BASE_PATH);
+      image = image.replace(/^Lolly-Calculator-main\/img\//i, PRODUCT_IMAGE_BASE_PATH);
       return image.replace(/^img\//i, PRODUCT_IMAGE_BASE_PATH);
     }
 
@@ -4890,7 +4892,7 @@
     function initializeProducts() {
       return {
         cat1: [
-          { name: 'Lolly Wave', desc: 'EPoS Terminal', price: 895.00, monthly: false, image: 'Lolly-Calculator-main/Lolly-Calculator-main/img/Lolly Wave.webp', labels: ['Regular','Self-Serve'], addons: [
+          { name: 'Lolly Wave', desc: 'EPoS Terminal', price: 895.00, monthly: false, image: 'img/Lolly Wave.webp', labels: ['Regular','Self-Serve'], addons: [
               { id: 'cat4-7', name: 'Lolly Wave PoS Rear Display (ET024a)', price: 200.00, desc: 'Rear Customer Display' },
               { id: 'cat4-0', name: 'Thermal Printer (PR001)', desc: 'Receipt Printer', price: 185.00, monthly: false, required: true },
               { id: 'cat4-4', name: '2D Barcode Scanner (SC001)', desc: 'Barcode Scanner', price: 220.00, monthly: false },
@@ -4899,7 +4901,7 @@
               { id: 'cat5-8', name: 'Payment Terminal Integration', price: 132.00, monthly: true, required: true },
               { id: 'cat5-9', name: 'Terminal Setup Fee', price: 27.50, monthly: false, required: true }
             ] },
-           { name: 'Lolly Evoq', desc: 'Advanced EPoS Terminal', price: 1750.00, monthly: false, image: 'Lolly-Calculator-main/Lolly-Calculator-main/img/Lolly Evoq.png', labels: ['Regular','Self-Serve'], addons: [
+           { name: 'Lolly Evoq', desc: 'Advanced EPoS Terminal', price: 1750.00, monthly: false, image: 'img/Lolly Evoq.png', labels: ['Regular','Self-Serve'], addons: [
               { id: 'addon-rear-et006a', name: 'Lolly Evoq PoS Rear Display', price: 275.00, desc: 'Professional Rear Display' },
               { id: 'addon-scanner-sc001', name: '2D Barcode Scanner', desc: 'Barcode Scanner', price: 220.00, monthly: false },
               { id: 'cat4-0', name: 'Thermal Printer', desc: 'Receipt Printer', price: 185.00, monthly: false, required: true },
@@ -4908,7 +4910,7 @@
               { id: 'cat5-8', name: 'Payment Terminal Integration', price: 132.00, monthly: true, required: true },
               { id: 'cat5-9', name: 'Terminal Setup Fee', price: 27.50, monthly: false, required: true }
             ] },
-          { name: 'Lolly Move', desc: 'Mobile EPoS Terminal', price: 355.00, monthly: false, image: 'Lolly-Calculator-main/Lolly-Calculator-main/img/Lolly Move.webp', labels: ['Mobile'], addons: [
+          { name: 'Lolly Move', desc: 'Mobile EPoS Terminal', price: 355.00, monthly: false, image: 'img/Lolly Move.webp', labels: ['Mobile'], addons: [
               { id: 'cat3-0', name: 'Lolly Move Charging Cradle', desc: 'Charging cradle', price: 72.00, monthly: false },
               { id: 'cat5-2', name: 'Move Licence', desc: 'Annual Licence', price: 120.00, monthly: true, required: true },
               { id: 'cat5-10', name: 'A920 Pro Service Fee', desc: 'Annual service fee', price: 300.00, monthly: true, required: true },
