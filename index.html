@@ -4643,6 +4643,7 @@
       if (!selectedState[outletId]) return;
       const outletItems = selectedState[outletId];
       const addonCounts = {};
+      const baselineIds = new Set();
 
       Object.values(outletItems).forEach(item => {
         const qty = item.qty || 0;
@@ -4654,11 +4655,19 @@
         });
       });
 
+      const hasQuoteItems = Object.values(outletItems).some(item => !item.isAutoAddonSelection && (item.qty || 0) > 0);
+      const hqHostingRef = findProductId('Lolly HQ Cloud Hosting');
+      if (hasQuoteItems && hqHostingRef) {
+        addonCounts[hqHostingRef] = Math.max(addonCounts[hqHostingRef] || 0, 1);
+        baselineIds.add(hqHostingRef);
+      }
+
       Object.entries(addonCounts).forEach(([addonId, qty]) => {
         const ref = getProductItemById(addonId);
         if (!ref) return;
         const existing = selectedState[outletId][addonId] || {};
-        const manuallyAdjusted = existing.isAutoAddonSelection === false;
+        const isBaseline = baselineIds.has(addonId);
+        const manuallyAdjusted = !isBaseline && existing.isAutoAddonSelection === false;
         selectedState[outletId][addonId] = {
           id: addonId,
           name: ref.item.name,
@@ -4666,9 +4675,10 @@
           monthly: ref.item.monthly,
           category: ref.category,
           labels: ref.item.labels || [],
-          qty: manuallyAdjusted ? Math.max(existing.qty || 0, qty) : qty,
+          qty: isBaseline ? qty : (manuallyAdjusted ? Math.max(existing.qty || 0, qty) : qty),
           selectedAddons: existing.selectedAddons || [],
-          isAutoAddonSelection: manuallyAdjusted ? false : true
+          isAutoAddonSelection: manuallyAdjusted ? false : true,
+          isBaselineSelection: isBaseline
         };
       });
 
