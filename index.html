@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lolly Calculation System</title>
+  <!-- Zero-setup Jotform prefill build: 2026-06-30 -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
@@ -3923,7 +3924,287 @@
       }
     }
   </style>
- </head>
+ 
+<style>
+  .survey-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(3px);
+  }
+  .survey-overlay.open { display: flex; }
+  .survey-dialog {
+    width: min(980px, 96vw);
+    max-height: 92vh;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    background: #fff;
+    box-shadow: 0 30px 100px rgba(15, 23, 42, 0.35);
+    display: flex;
+    flex-direction: column;
+  }
+  .survey-header {
+    padding: 1.1rem 1.25rem;
+    color: #fff;
+    background: linear-gradient(135deg, #125b82, #0f3f5c);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .survey-header h2 { margin: 0.2rem 0 0; font-size: 1.35rem; font-weight: 720; }
+  .survey-header p { margin: 0.35rem 0 0; max-width: 720px; font-size: 0.9rem; opacity: 0.88; }
+  .survey-close {
+    border: 0;
+    border-radius: 999px;
+    width: 2.2rem;
+    height: 2.2rem;
+    color: #fff;
+    background: rgba(255,255,255,0.14);
+    cursor: pointer;
+    font-size: 1.25rem;
+  }
+  .survey-stagebar {
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:0.55rem;
+    padding:0.72rem 1.25rem;
+    border-bottom:1px solid #dce8ee;
+    background:#fff;
+  }
+  .survey-stage {
+    display:flex;
+    align-items:center;
+    gap:0.48rem;
+    min-width:0;
+    color:#7a8a99;
+    font-size:0.76rem;
+    font-weight:650;
+  }
+  .survey-stage span {
+    width:1.55rem;
+    height:1.55rem;
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto;
+    background:#edf2f5;
+    color:#64748b;
+  }
+  .survey-stage.active { color:#0f4f78; }
+  .survey-stage.active span { background:#125b82; color:#fff; }
+  .survey-stage.complete { color:#067647; }
+  .survey-stage.complete span { background:#dff6eb; color:#067647; }
+  .survey-body { overflow: auto; padding: 1.15rem 1.25rem 1.35rem; background: #f7fafc; }
+  .survey-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.85rem; }
+  .survey-card {
+    border: 1px solid #dce8ee;
+    border-radius: 0.9rem;
+    padding: 0.95rem;
+    background: #fff;
+  }
+  .survey-card.full { grid-column: 1 / -1; }
+  .survey-card h3 { margin: 0 0 0.2rem; color: #172235; font-size: 1rem; font-weight: 680; }
+  .survey-card-copy { margin: 0 0 0.8rem; color: #64748b; font-size: 0.82rem; line-height: 1.4; }
+  .survey-fields { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.7rem; }
+  .survey-field.full { grid-column: 1 / -1; }
+  .survey-field label { display:block; margin-bottom: 0.32rem; color:#405166; font-size:0.76rem; font-weight:650; }
+  .survey-field input, .survey-field select, .survey-field textarea {
+    width: 100%;
+    border: 1px solid #cfdde5;
+    border-radius: 0.7rem;
+    padding: 0.7rem 0.75rem;
+    color: #172235;
+    background: #fff;
+    font-size: 0.9rem;
+  }
+  .survey-field textarea { min-height: 84px; resize: vertical; }
+  .survey-field-label { display:block; margin-bottom:0.42rem; color:#405166; font-size:0.76rem; font-weight:650; }
+  .survey-choice-grid {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:0.52rem;
+  }
+  .survey-checkbox {
+    display:flex !important;
+    align-items:flex-start;
+    gap:0.55rem;
+    margin:0 !important;
+    padding:0.68rem 0.72rem;
+    border:1px solid #d9e5eb;
+    border-radius:0.68rem;
+    background:#f9fcfd;
+    color:#334155 !important;
+    font-size:0.84rem !important;
+    font-weight:560 !important;
+    line-height:1.3;
+    cursor:pointer;
+  }
+  .survey-checkbox:hover { border-color:#9fc4d7; background:#f3f9fc; }
+  .survey-checkbox input {
+    width:1rem !important;
+    height:1rem;
+    margin:0.06rem 0 0 !important;
+    padding:0 !important;
+    flex:0 0 auto;
+    accent-color:#125b82;
+  }
+  .survey-scope-actions { display:flex; justify-content:flex-end; margin-bottom:0.55rem; }
+  .survey-scope-refresh {
+    border:1px solid #bfd1dc;
+    border-radius:0.6rem;
+    padding:0.48rem 0.68rem;
+    background:#fff;
+    color:#125b82;
+    font-size:0.76rem;
+    font-weight:650;
+    cursor:pointer;
+  }
+  .survey-scope-refresh:hover { background:#f1f7fa; }
+  #survey-scope-overview { min-height:320px; line-height:1.5; font-family:inherit; }
+  .survey-prefill-list { display:grid; gap:0.5rem; }
+  .survey-prefill-row {
+    display:grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    gap:0.75rem;
+    align-items:start;
+    border:1px solid #e3edf2;
+    border-radius:0.7rem;
+    padding:0.68rem 0.75rem;
+    background:#f9fcfd;
+  }
+  .survey-prefill-row strong { color:#172235; font-size:0.88rem; }
+  .survey-prefill-row p { margin:0.18rem 0 0; color:#64748b; font-size:0.78rem; line-height:1.35; }
+  .survey-badge { border-radius:999px; padding:0.16rem 0.48rem; background:#edf8f3; color:#0f6b52; font-size:0.68rem; font-weight:650; white-space:nowrap; }
+  .survey-footer {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:1rem;
+    padding:0.9rem 1.25rem;
+    border-top:1px solid #dce8ee;
+    background:#fff;
+  }
+  .survey-status { min-height:1.2rem; color:#64748b; font-size:0.83rem; }
+  .survey-status.error { color:#b42318; }
+  .survey-status.success { color:#067647; }
+  .survey-actions { display:flex; gap:0.6rem; }
+  .survey-btn { border-radius:0.7rem; border:1px solid #cfe0e8; padding:0.68rem 0.95rem; font-weight:650; cursor:pointer; }
+  .survey-btn.secondary { background:#fff; color:#0f4f78; }
+  .survey-btn.primary { background:#0c7a5a; border-color:#0c7a5a; color:#fff; min-width:190px; }
+  .survey-btn.primary:disabled { opacity:0.55; cursor:wait; }
+  .survey-confirmation { display:none; text-align:center; padding:2rem 1rem; }
+  .survey-confirmation.show { display:block; }
+  .survey-confirmation h3 { font-size:1.35rem; font-weight:720; color:#067647; }
+  .survey-reference { margin-top:0.7rem; padding:0.7rem; border-radius:0.7rem; background:#f0fbf6; color:#0f513f; font-weight:650; }
+  .survey-review-view { display:none; overflow:auto; padding:1.15rem 1.25rem 1.35rem; background:#f7fafc; }
+  .survey-review-view.show { display:block; }
+  .survey-review-banner {
+    display:flex;
+    align-items:flex-start;
+    gap:0.75rem;
+    border:1px solid #f4d58d;
+    border-left:4px solid #d97706;
+    border-radius:0.85rem;
+    padding:0.85rem 0.95rem;
+    background:#fffbeb;
+    color:#7c2d12;
+    margin-bottom:0.9rem;
+  }
+  .survey-review-banner strong { display:block; font-size:0.92rem; }
+  .survey-review-banner p { margin:0.16rem 0 0; font-size:0.8rem; line-height:1.4; color:#92400e; }
+  .survey-review-icon {
+    width:1.7rem;
+    height:1.7rem;
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto;
+    background:#fef3c7;
+    font-weight:800;
+  }
+  .survey-review-heading {
+    display:flex;
+    justify-content:space-between;
+    gap:1rem;
+    align-items:flex-start;
+    margin-bottom:0.9rem;
+  }
+  .survey-review-heading h3 { margin:0; color:#172235; font-size:1.15rem; font-weight:720; }
+  .survey-review-heading p { margin:0.28rem 0 0; color:#64748b; font-size:0.84rem; line-height:1.45; }
+  .survey-review-reference {
+    border:1px solid #cfe0e8;
+    border-radius:0.75rem;
+    background:#fff;
+    padding:0.55rem 0.7rem;
+    color:#0f4f78;
+    font-size:0.76rem;
+    font-weight:700;
+    white-space:nowrap;
+  }
+  .survey-review-alerts { display:grid; gap:0.55rem; margin-bottom:0.9rem; }
+  .survey-review-alert {
+    border:1px solid #dce8ee;
+    border-radius:0.8rem;
+    padding:0.75rem 0.85rem;
+    background:#fff;
+  }
+  .survey-review-alert.warning { border-color:#f4d58d; background:#fffbeb; }
+  .survey-review-alert.success { border-color:#b7e4cf; background:#f0fbf6; }
+  .survey-review-alert strong { color:#172235; font-size:0.86rem; }
+  .survey-review-alert ul { margin:0.35rem 0 0 1.15rem; color:#64748b; font-size:0.8rem; line-height:1.45; }
+  .survey-review-stack { display:grid; gap:0.8rem; }
+  .survey-review-section {
+    border:1px solid #dce8ee;
+    border-radius:0.9rem;
+    background:#fff;
+    overflow:hidden;
+  }
+  .survey-review-section-head {
+    display:flex;
+    justify-content:space-between;
+    gap:0.75rem;
+    align-items:center;
+    padding:0.72rem 0.85rem;
+    border-bottom:1px solid #e7eef2;
+    background:#f8fbfc;
+  }
+  .survey-review-section-head h4 { margin:0; color:#172235; font-size:0.92rem; font-weight:700; }
+  .survey-review-section-head span { color:#64748b; font-size:0.72rem; font-weight:650; }
+  .survey-review-kv { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0; }
+  .survey-review-kv > div { padding:0.68rem 0.85rem; border-bottom:1px solid #edf2f5; }
+  .survey-review-kv > div:nth-last-child(-n+2) { border-bottom:0; }
+  .survey-review-kv dt { color:#64748b; font-size:0.7rem; font-weight:650; letter-spacing:0.035em; text-transform:uppercase; }
+  .survey-review-kv dd { margin:0.22rem 0 0; color:#172235; font-size:0.86rem; line-height:1.4; overflow-wrap:anywhere; }
+  .survey-review-empty-value { color:#b54708 !important; font-style:italic; }
+  .survey-review-row { padding:0.78rem 0.85rem; border-bottom:1px solid #edf2f5; }
+  .survey-review-row:last-child { border-bottom:0; }
+  .survey-review-row-title { display:flex; justify-content:space-between; gap:0.75rem; margin-bottom:0.55rem; }
+  .survey-review-row-title strong { color:#172235; font-size:0.84rem; }
+  .survey-review-row-title span { color:#64748b; font-size:0.72rem; }
+  .survey-review-row-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0.5rem; }
+  .survey-review-cell { border:1px solid #e3edf2; border-radius:0.65rem; padding:0.55rem 0.62rem; background:#fbfdfe; min-width:0; }
+  .survey-review-cell label { display:block; color:#64748b; font-size:0.66rem; font-weight:650; letter-spacing:0.025em; text-transform:uppercase; }
+  .survey-review-cell p { margin:0.18rem 0 0; color:#172235; font-size:0.8rem; line-height:1.35; white-space:pre-line; overflow-wrap:anywhere; }
+  .survey-review-scope { margin:0; padding:0.85rem; max-height:280px; overflow:auto; white-space:pre-wrap; color:#334155; background:#fbfdfe; font:0.76rem/1.5 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; }
+  .survey-btn.review { background:#125b82; border-color:#125b82; color:#fff; min-width:190px; }
+  .survey-btn.danger-safe { background:#0c7a5a; border-color:#0c7a5a; color:#fff; min-width:210px; }
+  @media (max-width:760px) {
+    .survey-grid, .survey-fields, .survey-choice-grid { grid-template-columns:1fr; }
+    .survey-card.full, .survey-field.full { grid-column:auto; }
+    .survey-footer { align-items:stretch; flex-direction:column; }
+    .survey-actions, .survey-btn { width:100%; }
+  }
+</style>
+
+</head>
  <body class="min-h-full bg-gray-50">
   <div class="container mx-auto px-4 py-8 max-w-6xl">
     <div class="app-header text-center mb-6">
@@ -4140,6 +4421,7 @@
         <div class="grid gap-2 mt-5">
           <button id="rail-download-quote" class="px-4 py-2 rounded-lg bg-[#125b82] text-white font-semibold hover:bg-[#0f3f5c]">Download Quote</button>
           <button id="rail-email-quote" class="px-4 py-2 rounded-lg border border-[#125b82] text-[#125b82] font-semibold hover:bg-[#e8f3f7]">Email Quote</button>
+          <button type="button" id="rail-site-survey" class="px-4 py-2 rounded-lg bg-[#0c7a5a] text-white font-semibold hover:bg-[#075f45]">Complete site survey</button>
           <button id="rail-open-proposal" class="px-4 py-2 rounded-lg border border-[#0c7a5a] text-[#0c7a5a] font-semibold hover:bg-[#eef8f4]">Tech Proposal</button>
         </div>
       </aside>
@@ -4155,7 +4437,8 @@
         </div>
         <div class="quote-review-actions no-print">
           <button id="clear-all" class="quote-review-btn secondary">Clear all</button>
-          <button id="finalise-quote" class="quote-review-btn primary">Email quote</button>
+          <button type="button" id="complete-site-survey" class="quote-review-btn primary">Complete site survey</button>
+          <button id="finalise-quote" class="quote-review-btn secondary">Email quote</button>
           <button id="download-quote" class="quote-review-btn secondary">Download quote</button>
         </div>
       </div>
@@ -4425,6 +4708,200 @@
         <button id="open-email-client" class="px-4 py-2 bg-green-600 text-white rounded-lg">Open Email Client</button>
       </div>
     </div>
+  </div>
+
+
+  <div id="site-survey-modal" class="survey-overlay" aria-hidden="true">
+    <section class="survey-dialog" role="dialog" aria-modal="true" aria-labelledby="site-survey-title">
+      <header class="survey-header">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-wide">Final step</p>
+          <h2 id="site-survey-title">Complete the site survey</h2>
+          <p id="site-survey-subtitle">Products, quantities, client information and selected services are transferred automatically. Only provide the details the calculator cannot know.</p>
+        </div>
+        <button id="site-survey-close" class="survey-close" type="button" aria-label="Close">×</button>
+      </header>
+
+      <nav class="survey-stagebar" aria-label="Site survey progress">
+        <div id="survey-stage-details" class="survey-stage active"><span>1</span>Missing details</div>
+        <div id="survey-stage-review" class="survey-stage"><span>2</span>Review</div>
+        <div id="survey-stage-submit" class="survey-stage"><span>3</span>Jotform opened</div>
+      </nav>
+
+      <div id="site-survey-form-view" class="survey-body">
+        <div class="survey-grid">
+          <article class="survey-card full">
+            <h3>Information being transferred</h3>
+            <p class="survey-card-copy">This is generated from the quote. Each device row includes its quantity, mapped peripherals and a complete bundle summary in the notes so linked licences and services are not lost.</p>
+            <div id="survey-prefill-preview" class="survey-prefill-list"></div>
+          </article>
+
+          <article class="survey-card">
+            <h3>Default network setup</h3>
+            <p class="survey-card-copy">Applied to every applicable device. Leave a field blank when it is not yet confirmed.</p>
+            <div class="survey-fields">
+              <div class="survey-field">
+                <label for="survey-network">Connection</label>
+                <select id="survey-network">
+                  <option value="">Not confirmed</option>
+                  <option value="Ethernet">Ethernet</option>
+                  <option value="WiFi">Wi-Fi</option>
+                  <option value="4G">4G</option>
+                </select>
+              </div>
+              <div class="survey-field">
+                <label for="survey-ip">IP setup</label>
+                <select id="survey-ip">
+                  <option value="">Not confirmed</option>
+                  <option value="DHCP">DHCP</option>
+                  <option value="DHCP (Reserve IP)">DHCP (Reserve IP)</option>
+                  <option value="Static IP">Static IP</option>
+                </select>
+              </div>
+              <div class="survey-field full">
+                <label for="survey-network-notes">IP details / MAC whitelisting notes</label>
+                <textarea id="survey-network-notes" placeholder="Add confirmed IP details, VLAN, MAC whitelisting contact or any exceptions."></textarea>
+              </div>
+            </div>
+          </article>
+
+          <article class="survey-card">
+            <h3>Installation</h3>
+            <p class="survey-card-copy">The installation type comes from the selected quote item. Add timing information when known.</p>
+            <div class="survey-fields">
+              <div class="survey-field full">
+                <span class="survey-field-label">Installation type(s) — select all that apply</span>
+                <div class="survey-choice-grid">
+                  <label class="survey-checkbox"><input type="checkbox" name="survey-install-type" value="Full Day"> Full Day</label>
+                  <label class="survey-checkbox"><input type="checkbox" name="survey-install-type" value="Half Day"> Half Day</label>
+                  <label class="survey-checkbox"><input type="checkbox" name="survey-install-type" value="Out of Hours"> Out of Hours</label>
+                  <label class="survey-checkbox"><input type="checkbox" name="survey-install-type" value="Remote"> Remote</label>
+                  <label class="survey-checkbox"><input type="checkbox" name="survey-install-type" value="Just Delivery"> Just Delivery</label>
+                </div>
+              </div>
+              <div class="survey-field">
+                <label for="survey-install-date">Preferred date</label>
+                <input id="survey-install-date" type="date">
+              </div>
+              <div class="survey-field">
+                <label for="survey-install-time">Preferred time</label>
+                <input id="survey-install-time" type="time">
+              </div>
+              <div class="survey-field full">
+                <label for="survey-install-rough">Rough date / timing notes</label>
+                <input id="survey-install-rough" type="text" placeholder="For example: mid-September, before 08:00">
+              </div>
+            </div>
+          </article>
+
+          <article class="survey-card">
+            <h3>Go-live support</h3>
+            <p class="survey-card-copy">The support type comes from the quote. Add the preferred date and time when available.</p>
+            <div class="survey-fields">
+              <div class="survey-field full">
+                <span class="survey-field-label">Go-live support type(s) — select all that apply</span>
+                <div class="survey-choice-grid">
+                  <label class="survey-checkbox"><input type="checkbox" name="survey-golive-type" value="Standard (3Hrs)"> Standard (3Hrs)</label>
+                  <label class="survey-checkbox"><input type="checkbox" name="survey-golive-type" value="Full (2x3Hrs)"> Full (2x3Hrs)</label>
+                  <label class="survey-checkbox"><input type="checkbox" name="survey-golive-type" value="Out of Hours"> Out of Hours</label>
+                  <label class="survey-checkbox"><input type="checkbox" name="survey-golive-type" value="No Go-Live (Complete Reason Below)"> No Go-Live (complete reason below)</label>
+                </div>
+              </div>
+              <div class="survey-field">
+                <label for="survey-golive-date">Preferred date</label>
+                <input id="survey-golive-date" type="date">
+              </div>
+              <div class="survey-field">
+                <label for="survey-golive-time">Preferred time</label>
+                <input id="survey-golive-time" type="time">
+              </div>
+              <div class="survey-field full">
+                <label for="survey-golive-rough">Rough date / timing notes</label>
+                <input id="survey-golive-rough" type="text" placeholder="For example: launch week, lunchtime service">
+              </div>
+            </div>
+          </article>
+
+          <article class="survey-card">
+            <h3>Commercial reference</h3>
+            <p class="survey-card-copy">Optional information that may not have been available at quotation stage.</p>
+            <div class="survey-fields">
+              <div class="survey-field full">
+                <label for="survey-po-number">PO number, if known</label>
+                <input id="survey-po-number" type="text" autocomplete="off">
+              </div>
+              <div class="survey-field full">
+                <label for="survey-no-golive-reason">No go-live support reason, if applicable</label>
+                <textarea id="survey-no-golive-reason"></textarea>
+              </div>
+            </div>
+          </article>
+
+          <article class="survey-card full">
+            <h3>Scope overview</h3>
+            <p class="survey-card-copy">This is the exact site-scope description that will populate Jotform. A standard draft is prepared from the quote and site details, but you can edit it freely before review.</p>
+            <div class="survey-scope-actions">
+              <button id="survey-refresh-scope" class="survey-scope-refresh" type="button">Refresh suggested scope</button>
+            </div>
+            <div class="survey-field full">
+              <label for="survey-scope-overview">Editable site scope</label>
+              <textarea id="survey-scope-overview" placeholder="Describe the site scope, included solution, installation, connectivity, dependencies and exclusions."></textarea>
+            </div>
+          </article>
+
+          <article class="survey-card full">
+            <h3>Additional site requirements</h3>
+            <p class="survey-card-copy">Selected configuration and integration services are transferred automatically. Tick anything that is required but was not part of the quote.</p>
+            <div class="survey-fields" style="margin-bottom:1rem">
+              <label class="survey-checkbox"><input type="checkbox" name="survey-additional-requirement" value="Phase 1 Config"> Phase 1 Config</label>
+              <label class="survey-checkbox"><input type="checkbox" name="survey-additional-requirement" value="Phase 2 Config"> Phase 2 Config</label>
+              <label class="survey-checkbox"><input type="checkbox" name="survey-additional-requirement" value="Vending Integration"> Vending Integration</label>
+              <label class="survey-checkbox"><input type="checkbox" name="survey-additional-requirement" value="Coffee Machine Integration"> Coffee Machine Integration</label>
+              <label class="survey-checkbox"><input type="checkbox" name="survey-additional-requirement" value="Bespoke New Integration"> Bespoke New Integration</label>
+            </div>
+            <div class="survey-field full">
+              <label for="survey-additional-notes">Additional requirements or site notes</label>
+              <textarea id="survey-additional-notes" placeholder="Anything Lolly needs to know that is not already represented by the selected products."></textarea>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div id="site-survey-review-view" class="survey-review-view" aria-hidden="true">
+        <div class="survey-review-banner">
+          <span class="survey-review-icon">!</span>
+          <div>
+            <strong>Nothing has been submitted</strong>
+            <p>Review the exact client, product and site information below. Use <strong>Back &amp; edit</strong> to correct anything before opening the filled Jotform.</p>
+          </div>
+        </div>
+        <div class="survey-review-heading">
+          <div>
+            <h3>Review Jotform prefill</h3>
+            <p>This preview shows the values that will be used to open the actual Lolly site-survey form. Nothing is submitted by the calculator.</p>
+          </div>
+          <div id="survey-review-reference" class="survey-review-reference"></div>
+        </div>
+        <div id="survey-review-alerts" class="survey-review-alerts"></div>
+        <div id="survey-review-content" class="survey-review-stack"></div>
+      </div>
+
+      <div id="site-survey-confirmation" class="survey-confirmation">
+        <h3>Filled Jotform opened</h3>
+        <p class="mt-2 text-slate-600">The actual Lolly Jotform has opened with the reviewed values prefilled. Review or edit it there, then use Jotform’s own Save or Submit button as required. It is only sent when Submit is clicked.</p>
+        <div id="site-survey-reference" class="survey-reference"></div>
+      </div>
+
+      <footer class="survey-footer">
+        <p id="site-survey-status" class="survey-status" role="status"></p>
+        <div class="survey-actions">
+          <button id="site-survey-cancel" class="survey-btn secondary" type="button">Cancel</button>
+          <button id="site-survey-back" class="survey-btn secondary" type="button" style="display:none">Back &amp; edit</button>
+          <button id="site-survey-review" class="survey-btn review" type="button">Review submission</button>
+          <button id="site-survey-submit" class="survey-btn danger-safe" type="button" style="display:none">Open filled Jotform</button>
+        </div>
+      </footer>
+    </section>
   </div>
 
   <script>
@@ -7727,7 +8204,1265 @@
       }
     })();
   </script>
- </body>
+ 
+<script>
+(() => {
+  const FORM_ID = '251523093164048';
+  const JOTFORM_APP_ID = '251534253318352';
+
+  // Direct, zero-setup handoff. The calculator opens the real Jotform
+  // with URL-prefilled values. Nothing is submitted until the user presses
+  // Jotform's own Submit button.
+  const JOTFORM_FORM_URL = `https://eu.jotform.com/${FORM_ID}`;
+  const MAX_PREFILL_URL_LENGTH = 28000;
+
+  const $survey = (id) => document.getElementById(id);
+  let pendingSubmission = null;
+  let currentSurveyReference = '';
+  let surveyScopeTouched = false;
+  let updatingSurveyScope = false;
+
+  const JOTFORM_FIELDS = Object.freeze({
+    completionDate: 'q18_typeA',
+    requesterFirst: 'q3_requesterName[first]',
+    requesterLast: 'q3_requesterName[last]',
+    caterer: 'q5_caterer',
+    endClient: 'q6_endClient',
+    addressLine1: 'q7_siteOutlet[addr_line1]',
+    addressLine2: 'q7_siteOutlet[addr_line2]',
+    city: 'q7_siteOutlet[city]',
+    state: 'q7_siteOutlet[state]',
+    postal: 'q7_siteOutlet[postal]',
+    pointOfSale: 'q14_typeA14',
+    selfServe: 'q15_selfserve',
+    mobilePos: 'q16_selfserve16',
+    appOrdering: 'q28_lollyApp28',
+    webOrdering: 'q29_webOrdering',
+    orderJourney: 'q21_peripherals',
+    sundry: 'q24_peripherals24',
+    installation: 'q22_lollyApp',
+    goLive: 'q27_goliveSupport',
+    noGoLiveReason: 'q31_typeA31',
+    additionalRequirements: 'q20_mobilePos',
+    poNumber: 'q26_poNumber',
+    scopeOverview: 'q25_scopeOverview'
+  });
+
+  const PRODUCT_MAP = Object.freeze({
+    pos: {
+      'lolly wave': 'Lolly Wave',
+      'lolly evoq': 'Lolly Evoq'
+    },
+    selfServe: {
+      'snapserve - ai tray reader': 'Lolly CounterServe',
+      'swift serve kiosk': 'Lolly SwiftServe'
+    },
+    mobile: {
+      'lolly move': 'Lolly Move',
+      'room ordering licence': 'In-Room Ordering'
+    },
+    peripherals: {
+      'a35 payment terminal': 'A35',
+      'pax stand': 'PAX Stand',
+      'thermal printer': 'Thermal Printer',
+      'thermal printer (pr001)': 'Thermal Printer',
+      '2d barcode scanner': 'Barcode Scanner',
+      '2d barcode scanner (sc001)': 'Barcode Scanner',
+      'lolly wave pos rear display': '10" Display',
+      'lolly wave pos rear display (et024a)': '10" Display',
+      'lolly evoq pos rear display': '10" Display',
+      'cash drawer': 'Cash Drawer',
+      'swift serve floor stand (sa005a)': 'Stand',
+      'swift serve floor stand': 'Stand',
+      'lolly move charging cradle': 'Cradle',
+      'kds tablet stand (pr003)': 'Lockable Stand',
+      'kitchen printer (pr002)': 'Kitchen Printer',
+      'kitchen printer': 'Kitchen Printer',
+      'brother label printer': 'Brother Label Printer',
+      'thermal label printer': 'Brother Label Printer',
+      'thermal label printer (pr003)': 'Brother Label Printer'
+    },
+    orderJourney: {
+      'barista kvs': 'Barista KVS',
+      'kds (android)': 'KDS (Android)',
+      'kds (android) (pr002a)': 'KDS (Android)'
+    },
+    install: {
+      'on-site install - full day': 'Full Day',
+      'on-site install - half day': 'Half Day',
+      'out of hours install': 'Out of Hours',
+      'remote install': 'Remote'
+    },
+    goLive: {
+      'go-live support - standard (3 hours)': 'Standard (3Hrs)',
+      'go-live support - full (6 hours)': 'Full (2x3Hrs)',
+      'go-live support - out of hours': 'Out of Hours'
+    }
+  });
+
+  const POWER_TEXT = Object.freeze({
+    pos: 'POS and Printers require 1 power outlet per device.',
+    selfServe: 'Self-Serve devices require 1 power outlet.'
+  });
+
+  const NETWORK_TEXT = Object.freeze({
+    pos: 'POS and A35 Require 1 Network connection per device.',
+    selfServe: 'Self-Serve requires 1 Network connection.'
+  });
+
+  function normalise(value) {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/[–—]/g, '-')
+      .replace(/\s*\|.*$/, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function unique(values) {
+    return [...new Set((values || []).filter(Boolean))];
+  }
+
+  function formatTodayForJotform() {
+    const date = new Date();
+    return [
+      String(date.getMonth() + 1).padStart(2, '0'),
+      String(date.getDate()).padStart(2, '0'),
+      date.getFullYear()
+    ].join('/');
+  }
+
+  function createEventId() {
+    const random = Math.random().toString(36).slice(2, 9);
+    return `${Date.now()}_${FORM_ID}_${random}`;
+  }
+
+  function getQuoteReference() {
+    const now = new Date();
+    const date = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const random = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2))
+      .replace(/-/g, '')
+      .slice(0, 6)
+      .toUpperCase();
+    return `LQ-${date}-${random}`;
+  }
+
+  function getAllSelections() {
+    const rows = [];
+    Object.entries(selectedState || {}).forEach(([outletId, items]) => {
+      Object.values(items || {}).forEach((item) => {
+        if (!item || Number(item.qty || 0) < 1 || item.isAutoAddonSelection) return;
+        rows.push({
+          ...item,
+          outletId: Number(outletId),
+          outletName: `Outlet ${outletId}`,
+          selectedAddons: Array.isArray(item.selectedAddons) ? item.selectedAddons : []
+        });
+      });
+    });
+    return rows;
+  }
+
+  function selectedPeripheralNames(item) {
+    return unique(
+      (item.selectedAddons || [])
+        .map((addon) => PRODUCT_MAP.peripherals[normalise(addon.name)])
+        .filter(Boolean)
+    );
+  }
+
+  function selectedAddonDetails(item) {
+    const seen = new Set();
+    return (item.selectedAddons || []).filter((addon) => {
+      const key = normalise(addon?.name);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function addonQuantityText(item, addon) {
+    const qty = Math.max(1, Number(item?.qty) || 1);
+    const name = String(addon?.name || '').trim();
+    if (!name) return '';
+    return `${qty} × ${name}`;
+  }
+
+  function buildDeviceBundleText(item) {
+    const addOns = selectedAddonDetails(item);
+    if (!addOns.length) return '';
+    return `Full calculator configuration: ${addOns.map((addon) => addonQuantityText(item, addon)).filter(Boolean).join('; ')}`;
+  }
+
+  function buildDeviceRowNotes(item, siteNotes = '', extra = '') {
+    const qty = Math.max(1, Number(item?.qty) || 1);
+    return [
+      item?.outletName || '',
+      `Base device: ${qty} × ${item?.name || 'Selected item'}`,
+      buildDeviceBundleText(item),
+      extra,
+      siteNotes
+    ]
+      .map((value) => String(value || '').trim())
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  function getSelectionDestination(item) {
+    const key = normalise(item?.name);
+    if (PRODUCT_MAP.pos[key]) return 'Point of Sale';
+    if (PRODUCT_MAP.selfServe[key]) return 'Self-Serve';
+    if (PRODUCT_MAP.mobile[key]) return 'Mobile POS';
+    if (key === 'bespoke app') return 'Lolly App Ordering';
+    if (PRODUCT_MAP.orderJourney[key]) return 'Order Journey';
+    if (PRODUCT_MAP.install[key]) return 'Installation';
+    if (PRODUCT_MAP.goLive[key]) return 'Go-Live Support';
+    if (mapAdditionalRequirement(item?.name || '')) return 'Additional Requirements';
+    if (item?.category === 'cat3' || item?.category === 'cat4') return 'Sundry Items / Additional Printers';
+    return 'Scope Overview';
+  }
+
+  function getAddonDestination(addon) {
+    const key = normalise(addon?.name);
+    if (PRODUCT_MAP.peripherals[key]) return 'Device peripheral column and device notes';
+    if (PRODUCT_MAP.orderJourney[key]) return 'Order Journey device row and device notes';
+    if (PRODUCT_MAP.install[key]) return 'Installation';
+    if (PRODUCT_MAP.goLive[key]) return 'Go-Live Support';
+    if (mapAdditionalRequirement(addon?.name || '')) return 'Additional Requirements';
+    return 'Device notes and Scope Overview';
+  }
+
+  function getNetworkDefaults() {
+    const selectedNetwork = $survey('survey-network')?.value || '';
+    return {
+      networkConnection: selectedNetwork === 'Ethernet' ? 'Ethernet*' : selectedNetwork,
+      ipDetails: $survey('survey-ip')?.value || '',
+      notes: $survey('survey-network-notes')?.value.trim() || ''
+    };
+  }
+
+  function combineNotes(...values) {
+    return values
+      .map((value) => String(value || '').trim())
+      .filter(Boolean)
+      .join(' — ');
+  }
+
+  function mapAdditionalRequirement(name) {
+    if (/phase\s*1/i.test(name)) return 'Phase 1 Config';
+    if (/phase\s*2/i.test(name)) return 'Phase 2 Config';
+    if (/vending/i.test(name)) return 'Vending Integration';
+    if (/coffee/i.test(name)) return 'Coffee Machine Integration';
+    if (/integration/i.test(name) && !/payment terminal/i.test(name)) return 'Bespoke New Integration';
+    return '';
+  }
+
+  function getQuotedSurveyChoices() {
+    const installation = [];
+    const goLive = [];
+    const additionalRequirements = [];
+
+    getAllSelections().forEach((item) => {
+      const itemKey = normalise(item.name);
+      if (PRODUCT_MAP.install[itemKey]) installation.push(PRODUCT_MAP.install[itemKey]);
+      if (PRODUCT_MAP.goLive[itemKey]) goLive.push(PRODUCT_MAP.goLive[itemKey]);
+      const mappedItemRequirement = mapAdditionalRequirement(item.name);
+      if (mappedItemRequirement) additionalRequirements.push(mappedItemRequirement);
+
+      (item.selectedAddons || []).forEach((addon) => {
+        const addonKey = normalise(addon.name || '');
+        if (PRODUCT_MAP.install[addonKey]) installation.push(PRODUCT_MAP.install[addonKey]);
+        if (PRODUCT_MAP.goLive[addonKey]) goLive.push(PRODUCT_MAP.goLive[addonKey]);
+        const mappedAddonRequirement = mapAdditionalRequirement(addon.name || '');
+        if (mappedAddonRequirement) additionalRequirements.push(mappedAddonRequirement);
+      });
+    });
+
+    return {
+      installation: unique(installation),
+      goLive: unique(goLive),
+      additionalRequirements: unique(additionalRequirements)
+    };
+  }
+
+  function syncSurveyChoiceDefaults() {
+    const quoted = getQuotedSurveyChoices();
+    document.querySelectorAll('input[name="survey-install-type"]').forEach((input) => {
+      input.checked = quoted.installation.includes(input.value);
+    });
+    document.querySelectorAll('input[name="survey-golive-type"]').forEach((input) => {
+      input.checked = quoted.goLive.includes(input.value);
+    });
+    document.querySelectorAll('input[name="survey-additional-requirement"]').forEach((input) => {
+      input.checked = quoted.additionalRequirements.includes(input.value);
+    });
+  }
+
+  function formatScopeTiming(dateValue, timeValue, roughValue) {
+    const parts = [];
+    if (dateValue) parts.push(dateValue);
+    if (timeValue) parts.push(timeValue);
+    if (roughValue) parts.push(roughValue);
+    return parts.length ? parts.join(' — ') : 'To be confirmed';
+  }
+
+  function buildStandardScopeOverview(sections, reference = currentSurveyReference) {
+    const siteName = String(intakeData.siteName || intakeData.streetAddress || 'the site').trim();
+    const endClient = String(intakeData.endClientName || 'the end client').trim();
+    const outletCount = Math.max(1, Number(intakeData.numberOutlets) || 1);
+    const lines = [
+      'SITE SCOPE OVERVIEW',
+      '',
+      'Project summary',
+      `This scope covers the proposed Lolly technology deployment at ${siteName} for ${endClient}, across ${outletCount} outlet${outletCount === 1 ? '' : 's'}.`,
+      '',
+      'Included solution'
+    ];
+
+    const productGroups = humanSectionRows(sections).filter(([title]) =>
+      !['Installation', 'Go-Live Support', 'Additional Requirements'].includes(title)
+    );
+
+    if (productGroups.length) {
+      productGroups.forEach(([title, rows, formatter]) => {
+        const details = rows.map((row) => formatter(row)).join('; ');
+        lines.push(`- ${title}: ${details}.`);
+      });
+    } else {
+      lines.push('- Technology configuration to be confirmed.');
+    }
+
+    const installValues = sections.installation.flatMap((row) => String(row['Please select'] || '').split('\n')).filter(Boolean);
+    const goLiveValues = sections.goLive.flatMap((row) => String(row['Please select'] || '').split('\n')).filter(Boolean);
+    const installDate = $survey('survey-install-date')?.value || '';
+    const installTime = $survey('survey-install-time')?.value || '';
+    const installRough = $survey('survey-install-rough')?.value.trim() || '';
+    const goLiveDate = $survey('survey-golive-date')?.value || '';
+    const goLiveTime = $survey('survey-golive-time')?.value || '';
+    const goLiveRough = $survey('survey-golive-rough')?.value.trim() || '';
+
+    lines.push('', 'Installation and launch');
+    lines.push(`- Installation requirement: ${installValues.length ? unique(installValues).join(', ') : 'To be confirmed'}.`);
+    lines.push(`- Preferred installation date / time: ${formatScopeTiming(installDate, installTime, installRough)}.`);
+    lines.push(`- Go-live support: ${goLiveValues.length ? unique(goLiveValues).join(', ') : 'To be confirmed'}.`);
+    lines.push(`- Preferred go-live date / time: ${formatScopeTiming(goLiveDate, goLiveTime, goLiveRough)}.`);
+
+    const defaults = getNetworkDefaults();
+    lines.push('', 'Site readiness and connectivity');
+    lines.push(`- Network connection: ${defaults.networkConnection || 'To be confirmed'}.`);
+    lines.push(`- IP configuration: ${defaults.ipDetails || 'To be confirmed'}.`);
+    lines.push(`- IP, VLAN and MAC-whitelisting requirements: ${defaults.notes || 'To be confirmed'}.`);
+    lines.push('- Suitable power and network points must be available for all applicable devices before installation.');
+
+    const additionalValues = sections.additionalRequirements
+      .flatMap((row) => String(row[''] || '').split('\n'))
+      .filter(Boolean);
+    const extraNotes = $survey('survey-additional-notes')?.value.trim() || '';
+    const noGoLiveReason = $survey('survey-no-golive-reason')?.value.trim() || '';
+
+    lines.push('', 'Additional requirements');
+    lines.push(`- Configuration or integration requirements: ${additionalValues.length ? unique(additionalValues).join(', ') : 'None confirmed'}.`);
+    if (noGoLiveReason) lines.push(`- No go-live support reason: ${noGoLiveReason}`);
+    lines.push(`- Site-specific notes: ${extraNotes || 'To be confirmed'}.`);
+
+    lines.push('', 'Dependencies and exclusions');
+    lines.push('- Final device locations, site access, delivery arrangements, power and network readiness remain subject to site confirmation.');
+    lines.push('- Cabling, electrical works and client-side network changes are excluded unless agreed separately.');
+    lines.push('- The final configuration remains subject to validation by the relevant IT representative and Lolly.');
+    if (reference) lines.push('', `Calculator quote reference: ${reference}`);
+
+    return lines.join('\n').trim();
+  }
+
+  function syncScopeOverview(force = false) {
+    const scopeField = $survey('survey-scope-overview');
+    if (!scopeField) return;
+    if (!force && surveyScopeTouched && scopeField.value.trim()) return;
+
+    updatingSurveyScope = true;
+    try {
+      scopeField.value = buildStandardScopeOverview(buildMappedSections(), currentSurveyReference);
+    } finally {
+      updatingSurveyScope = false;
+    }
+  }
+
+  function buildMappedSections() {
+    const defaults = getNetworkDefaults();
+    const selections = getAllSelections();
+
+    const sections = {
+      pointOfSale: [],
+      selfServe: [],
+      mobilePos: [],
+      appOrdering: [],
+      webOrdering: [],
+      orderJourney: [],
+      sundry: [],
+      installation: [],
+      goLive: [],
+      additionalRequirements: []
+    };
+
+    const installSelections = [];
+    const goLiveSelections = [];
+    const additionalSelections = [];
+
+    selections.forEach((item) => {
+      const key = normalise(item.name);
+      const qty = Math.max(1, Number(item.qty) || 1);
+      const outletNote = item.outletName;
+      const peripherals = selectedPeripheralNames(item);
+      const peripheralText = peripherals.join('\n');
+
+      (item.selectedAddons || []).forEach((addon) => {
+        const addonKey = normalise(addon.name || '');
+        const mappedRequirement = mapAdditionalRequirement(addon.name || '');
+        if (mappedRequirement) additionalSelections.push(mappedRequirement);
+
+        const childOrderJourneyDevice = PRODUCT_MAP.orderJourney[addonKey];
+        if (childOrderJourneyDevice) {
+          sections.orderJourney.push({
+            'Device Qty': String(qty),
+            'Device': childOrderJourneyDevice,
+            'Perhipheral': '',
+            'Network Connection': defaults.networkConnection,
+            'IP Details': defaults.ipDetails,
+            'MAC Whitelisting / Notes': [
+              outletNote,
+              `Linked to ${qty} × ${item.name}`,
+              `${qty} × ${addon.name}`,
+              defaults.notes
+            ].filter(Boolean).join('\n')
+          });
+        }
+      });
+
+      if (PRODUCT_MAP.pos[key]) {
+        sections.pointOfSale.push({
+          'Device Qty': String(qty),
+          'POS': PRODUCT_MAP.pos[key],
+          'Perhipheral': peripheralText,
+          'Power': POWER_TEXT.pos,
+          'Network': NETWORK_TEXT.pos,
+          'Network Connection': defaults.networkConnection,
+          'IP Details': defaults.ipDetails,
+          'MAC Whitelist / Notes': buildDeviceRowNotes(item, defaults.notes)
+        });
+        return;
+      }
+
+      if (PRODUCT_MAP.selfServe[key]) {
+        sections.selfServe.push({
+          'Device Qty': String(qty),
+          'Self-Serve': PRODUCT_MAP.selfServe[key],
+          'Perhipheral': peripheralText,
+          'Power': POWER_TEXT.selfServe,
+          'Network': NETWORK_TEXT.selfServe,
+          'Network Connection': defaults.networkConnection,
+          'IP Details': defaults.ipDetails,
+          'MAC Whitelist / Notes': buildDeviceRowNotes(item, defaults.notes)
+        });
+        return;
+      }
+
+      if (PRODUCT_MAP.mobile[key]) {
+        sections.mobilePos.push({
+          'Device Qty': String(qty),
+          'Mobile POS': PRODUCT_MAP.mobile[key],
+          'Perhipheral': peripheralText,
+          'Network Connection': defaults.networkConnection,
+          'Notes': buildDeviceRowNotes(item, defaults.notes)
+        });
+        return;
+      }
+
+      if (key === 'bespoke app') {
+        sections.appOrdering.push({
+          'Location Qty': String(Math.max(1, Number(intakeData.numberOutlets) || 1)),
+          'Features': 'Ordering',
+          'Brand': 'Client Branded',
+          'Notes': buildDeviceRowNotes(item, '', 'App ordering requirement generated from the calculator')
+        });
+        return;
+      }
+
+      if (PRODUCT_MAP.orderJourney[key]) {
+        sections.orderJourney.push({
+          'Device Qty': String(qty),
+          'Device': PRODUCT_MAP.orderJourney[key],
+          'Perhipheral': peripheralText,
+          'Network Connection': defaults.networkConnection,
+          'IP Details': defaults.ipDetails,
+          'MAC Whitelisting / Notes': buildDeviceRowNotes(item, defaults.notes)
+        });
+        return;
+      }
+
+      if (PRODUCT_MAP.install[key] || PRODUCT_MAP.goLive[key]) {
+        return;
+      }
+
+      const additionalRequirement = mapAdditionalRequirement(item.name);
+      if (additionalRequirement) {
+        additionalSelections.push(additionalRequirement);
+        return;
+      }
+
+      if (item.category === 'cat4') {
+        sections.sundry.push({
+          'Device Qty': String(qty),
+          'Device': item.name,
+          'MAC Whitelisting / Notes': buildDeviceRowNotes(item, defaults.notes),
+          'Network Connection': defaults.networkConnection,
+          'IP Details': defaults.ipDetails
+        });
+        return;
+      }
+
+      if (item.category === 'cat3' && key !== 'a35 payment terminal') {
+        sections.sundry.push({
+          'Device Qty': String(qty),
+          'Device': item.name,
+          'MAC Whitelisting / Notes': buildDeviceRowNotes(item, defaults.notes),
+          'Network Connection': defaults.networkConnection,
+          'IP Details': defaults.ipDetails
+        });
+      }
+
+      if (key === 'a35 payment terminal' || key === 'lolly move charging cradle') {
+        sections.sundry.push({
+          'Device Qty': String(qty),
+          'Device': item.name,
+          'MAC Whitelisting / Notes': buildDeviceRowNotes(item, defaults.notes),
+          'Network Connection': defaults.networkConnection,
+          'IP Details': defaults.ipDetails
+        });
+      }
+    });
+
+    document.querySelectorAll('input[name="survey-install-type"]:checked').forEach((input) => {
+      if (input.value) installSelections.push(input.value);
+    });
+    const installDate = $survey('survey-install-date')?.value || '';
+    const installTime = $survey('survey-install-time')?.value || '';
+    const installRough = $survey('survey-install-rough')?.value.trim() || '';
+
+    if (installSelections.length || installDate || installTime || installRough) {
+      sections.installation.push({
+        'Please select': unique(installSelections).join('\n'),
+        'Select Prefered Date': installDate,
+        'Prefered Time': installTime,
+        'Or Rough Date': installRough
+      });
+    }
+
+    document.querySelectorAll('input[name="survey-golive-type"]:checked').forEach((input) => {
+      if (input.value) goLiveSelections.push(input.value);
+    });
+    const goLiveDate = $survey('survey-golive-date')?.value || '';
+    const goLiveTime = $survey('survey-golive-time')?.value || '';
+    const goLiveRough = $survey('survey-golive-rough')?.value.trim() || '';
+    const noGoLiveReason = $survey('survey-no-golive-reason')?.value.trim() || '';
+
+    if (goLiveSelections.length || goLiveDate || goLiveTime || goLiveRough || noGoLiveReason) {
+      const values = unique(goLiveSelections);
+      if (!values.length && noGoLiveReason) values.push('No Go-Live (Complete Reason Below)');
+      sections.goLive.push({
+        'Please select': values.join('\n'),
+        'Select Prefered Date': goLiveDate,
+        'Prefered Time': goLiveTime,
+        'Or Rough Date': goLiveRough
+      });
+    }
+
+    document.querySelectorAll('input[name="survey-additional-requirement"]:checked').forEach((input) => {
+      if (input.value) additionalSelections.push(input.value);
+    });
+
+    if (additionalSelections.length) {
+      sections.additionalRequirements.push({
+        '': unique(additionalSelections).join('\n')
+      });
+    }
+
+    return sections;
+  }
+
+  function humanSectionRows(sections) {
+    return [
+      ['Point of Sale', sections.pointOfSale, (r) => `${r['Device Qty']} × ${r.POS}${r.Perhipheral ? ` — ${r.Perhipheral.replace(/\n/g, ', ')}` : ''}`],
+      ['Self-Serve', sections.selfServe, (r) => `${r['Device Qty']} × ${r['Self-Serve']}${r.Perhipheral ? ` — ${r.Perhipheral.replace(/\n/g, ', ')}` : ''}`],
+      ['Mobile POS', sections.mobilePos, (r) => `${r['Device Qty']} × ${r['Mobile POS']}${r.Perhipheral ? ` — ${r.Perhipheral.replace(/\n/g, ', ')}` : ''}`],
+      ['Lolly App Ordering', sections.appOrdering, (r) => `${r['Location Qty']} location(s) — ${r.Brand || 'Brand TBC'}`],
+      ['Web Ordering', sections.webOrdering, (r) => `${r['Location Qty']} location(s) — ${r.Brand || 'Brand TBC'}`],
+      ['Order Journey', sections.orderJourney, (r) => `${r['Device Qty']} × ${r.Device}${r.Perhipheral ? ` — ${r.Perhipheral.replace(/\n/g, ', ')}` : ''}`],
+      ['Sundry Items', sections.sundry, (r) => `${r['Device Qty']} × ${r.Device}`],
+      ['Installation', sections.installation, (r) => r['Please select'] || 'Timing only'],
+      ['Go-Live Support', sections.goLive, (r) => r['Please select'] || 'Timing only'],
+      ['Additional Requirements', sections.additionalRequirements, (r) => r[''] || 'Selected requirements']
+    ].filter(([, rows]) => rows && rows.length);
+  }
+
+  function buildScopeOverview(sections, reference) {
+    const editableScope = $survey('survey-scope-overview')?.value.trim() || '';
+    return editableScope || buildStandardScopeOverview(sections, reference);
+  }
+
+  function addHiddenInput(form, name, value) {
+    if (value === undefined || value === null) return;
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = typeof value === 'string' ? value : JSON.stringify(value);
+    form.appendChild(input);
+  }
+
+  function buildJotformFields() {
+    const sections = buildMappedSections();
+    const reference = currentSurveyReference || getQuoteReference();
+    currentSurveyReference = reference;
+    const fullName = String(intakeData.requestorName || '').trim();
+    const nameParts = fullName.split(/\s+/).filter(Boolean);
+    const firstName = nameParts.shift() || '';
+    const lastName = nameParts.join(' ');
+    const scopeOverview = buildScopeOverview(sections, reference);
+    const now = Date.now();
+
+    const fields = {
+      formID: FORM_ID,
+      submitSource: 'form',
+      submitDate: String(now),
+      buildDate: String(now),
+      uploadServerUrl: 'https://upload.jotform.com/upload',
+      eventObserver: '1',
+      website: '',
+      simple_spc: `${FORM_ID}-${FORM_ID}`,
+      event_id: createEventId(),
+      timeToSubmit: '20',
+      validatedNewRequiredFieldIDs: JSON.stringify({ new: 1, id_25: scopeOverview.slice(0, 2) || 'LO' }),
+      [JOTFORM_FIELDS.completionDate]: formatTodayForJotform(),
+      [JOTFORM_FIELDS.requesterFirst]: firstName,
+      [JOTFORM_FIELDS.requesterLast]: lastName,
+      [JOTFORM_FIELDS.caterer]: intakeData.businessArea || '',
+      [JOTFORM_FIELDS.endClient]: intakeData.endClientName || '',
+      [JOTFORM_FIELDS.addressLine1]: intakeData.streetAddress || intakeData.siteName || '',
+      [JOTFORM_FIELDS.scopeOverview]: scopeOverview
+    };
+
+    const setTextIfPresent = (fieldName, value) => {
+      const clean = String(value || '').trim();
+      if (clean) fields[fieldName] = clean;
+    };
+    const setRowsIfPresent = (fieldName, rows) => {
+      if (Array.isArray(rows) && rows.length) fields[fieldName] = rows;
+    };
+
+    setTextIfPresent(JOTFORM_FIELDS.addressLine2, intakeData.streetAddressLine2);
+    setTextIfPresent(JOTFORM_FIELDS.city, intakeData.city);
+    setTextIfPresent(JOTFORM_FIELDS.state, intakeData.stateProvince);
+    setTextIfPresent(JOTFORM_FIELDS.postal, intakeData.postalZipCode);
+    setRowsIfPresent(JOTFORM_FIELDS.pointOfSale, sections.pointOfSale);
+    setRowsIfPresent(JOTFORM_FIELDS.selfServe, sections.selfServe);
+    setRowsIfPresent(JOTFORM_FIELDS.mobilePos, sections.mobilePos);
+    setRowsIfPresent(JOTFORM_FIELDS.appOrdering, sections.appOrdering);
+    setRowsIfPresent(JOTFORM_FIELDS.webOrdering, sections.webOrdering);
+    setRowsIfPresent(JOTFORM_FIELDS.orderJourney, sections.orderJourney);
+    setRowsIfPresent(JOTFORM_FIELDS.sundry, sections.sundry);
+    setRowsIfPresent(JOTFORM_FIELDS.installation, sections.installation);
+    setRowsIfPresent(JOTFORM_FIELDS.goLive, sections.goLive);
+    setRowsIfPresent(JOTFORM_FIELDS.additionalRequirements, sections.additionalRequirements);
+    setTextIfPresent(JOTFORM_FIELDS.noGoLiveReason, $survey('survey-no-golive-reason')?.value);
+    setTextIfPresent(JOTFORM_FIELDS.poNumber, $survey('survey-po-number')?.value);
+
+    fields.jsExecutionTracker = [
+      `build-date-${fields.buildDate}`,
+      `init-started:${fields.buildDate}`,
+      `init-complete:${fields.buildDate}`,
+      `onsubmit-fired:${fields.submitDate}`,
+      `submit-validation-passed:${fields.submitDate}`
+    ].join('=>');
+
+    return { fields, reference, sections };
+  }
+
+
+  function hasPrefillValue(value) {
+    if (value === undefined || value === null) return false;
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'object') {
+      return Object.values(value).some((entry) => hasPrefillValue(entry));
+    }
+    return String(value).trim() !== '';
+  }
+
+  function getUniqueJotformName(fieldName) {
+    return String(fieldName || '').replace(/^q\d+_/, '');
+  }
+
+  function buildJotformPrefillUrl(snapshot) {
+    const fields = snapshot.fields || {};
+    const mappedFieldNames = unique(Object.values(JOTFORM_FIELDS));
+    const queryParts = [
+      `${encodeURIComponent('utm_source')}=${encodeURIComponent('lolly_calculator')}`
+    ];
+
+    mappedFieldNames.forEach((fieldName) => {
+      const value = fields[fieldName];
+      if (!hasPrefillValue(value)) return;
+
+      const parameterName = getUniqueJotformName(fieldName);
+      const parameterValue = Array.isArray(value) || (value && typeof value === 'object')
+        ? JSON.stringify(value)
+        : String(value);
+
+      queryParts.push(`${encodeURIComponent(parameterName)}=${encodeURIComponent(parameterValue)}`);
+    });
+
+    const finalUrl = `${JOTFORM_FORM_URL}?${queryParts.join('&')}`;
+    if (finalUrl.length > MAX_PREFILL_URL_LENGTH) {
+      throw new Error(
+        `This configuration creates a very large prefilled link (${finalUrl.length.toLocaleString()} characters). ` +
+        'Shorten unusually long free-text notes or the scope overview before opening Jotform.'
+      );
+    }
+
+    return finalUrl;
+  }
+
+  function renderPrefillPreview() {
+    const preview = $survey('survey-prefill-preview');
+    if (!preview) return;
+
+    const sections = buildMappedSections();
+    const summary = humanSectionRows(sections);
+
+    if (!summary.length) {
+      preview.innerHTML = '<div class="survey-prefill-row"><div><strong>No mapped products yet</strong><p>Select at least one applicable product before completing the site survey.</p></div></div>';
+      return;
+    }
+
+    preview.innerHTML = summary.map(([name, rows, formatter]) => {
+      const examples = rows.slice(0, 3).map((row) => escapeHtml(formatter(row))).join('<br>');
+      const more = rows.length > 3 ? `<br>+ ${rows.length - 3} more row(s)` : '';
+      return `<div class="survey-prefill-row"><div><strong>${escapeHtml(name)}</strong><p>${examples}${more}</p></div><span class="survey-badge">${rows.length} row${rows.length === 1 ? '' : 's'}</span></div>`;
+    }).join('');
+  }
+
+  function setStage(stage) {
+    const stages = {
+      details: $survey('survey-stage-details'),
+      review: $survey('survey-stage-review'),
+      submit: $survey('survey-stage-submit')
+    };
+
+    Object.values(stages).forEach((element) => {
+      element?.classList.remove('active', 'complete');
+    });
+
+    if (stage === 'details') {
+      stages.details?.classList.add('active');
+    } else if (stage === 'review') {
+      stages.details?.classList.add('complete');
+      stages.review?.classList.add('active');
+    } else if (stage === 'submit') {
+      stages.details?.classList.add('complete');
+      stages.review?.classList.add('complete');
+      stages.submit?.classList.add('active');
+    }
+  }
+
+  function setHeader(title, subtitle) {
+    const titleElement = $survey('site-survey-title');
+    const subtitleElement = $survey('site-survey-subtitle');
+    if (titleElement) titleElement.textContent = title;
+    if (subtitleElement) subtitleElement.textContent = subtitle;
+  }
+
+  function setStatus(message, type = '') {
+    const status = $survey('site-survey-status');
+    if (!status) return;
+    status.textContent = message || '';
+    status.className = `survey-status${type ? ` ${type}` : ''}`;
+  }
+
+  function displayReviewValue(value) {
+    if (Array.isArray(value)) return value.length ? value.join(', ') : '';
+    if (value && typeof value === 'object') return JSON.stringify(value);
+    return String(value ?? '').trim();
+  }
+
+  function renderReviewValue(value) {
+    const normalised = displayReviewValue(value);
+    return normalised
+      ? escapeHtml(normalised)
+      : '<span class="survey-review-empty-value">Not provided</span>';
+  }
+
+  function renderReviewKeyValues(title, values, note = '') {
+    const entries = Object.entries(values);
+    return `
+      <section class="survey-review-section">
+        <div class="survey-review-section-head">
+          <h4>${escapeHtml(title)}</h4>
+          <span>${escapeHtml(note || `${entries.length} field${entries.length === 1 ? '' : 's'}`)}</span>
+        </div>
+        <dl class="survey-review-kv">
+          ${entries.map(([label, value]) => `
+            <div>
+              <dt>${escapeHtml(label)}</dt>
+              <dd>${renderReviewValue(value)}</dd>
+            </div>
+          `).join('')}
+        </dl>
+      </section>`;
+  }
+
+  function renderReviewRows(title, rows) {
+    if (!rows || !rows.length) return '';
+    return `
+      <section class="survey-review-section">
+        <div class="survey-review-section-head">
+          <h4>${escapeHtml(title)}</h4>
+          <span>${rows.length} row${rows.length === 1 ? '' : 's'} will be submitted</span>
+        </div>
+        ${rows.map((row, index) => `
+          <article class="survey-review-row">
+            <div class="survey-review-row-title">
+              <strong>${escapeHtml(title)} row ${index + 1}</strong>
+              <span>Jotform product row</span>
+            </div>
+            <div class="survey-review-row-grid">
+              ${Object.entries(row).map(([label, value]) => `
+                <div class="survey-review-cell">
+                  <label>${escapeHtml(label || 'Requirement')}</label>
+                  <p>${renderReviewValue(value)}</p>
+                </div>
+              `).join('')}
+            </div>
+          </article>
+        `).join('')}
+      </section>`;
+  }
+
+  function buildSubmissionCoverage(snapshot) {
+    const items = getAllSelections();
+    const rows = [];
+    items.forEach((item) => {
+      rows.push({
+        item: `${Math.max(1, Number(item.qty) || 1)} × ${item.name}`,
+        outlet: item.outletName,
+        destination: getSelectionDestination(item),
+        detail: 'Base selection included'
+      });
+      selectedAddonDetails(item).forEach((addon) => {
+        rows.push({
+          item: addonQuantityText(item, addon),
+          outlet: item.outletName,
+          destination: getAddonDestination(addon),
+          detail: `Linked to ${item.name}`
+        });
+      });
+    });
+    return rows;
+  }
+
+  function collectReviewWarnings(snapshot) {
+    const warnings = [];
+    const required = [];
+    const fields = snapshot.fields;
+    const sections = snapshot.sections;
+
+    if (!displayReviewValue(fields[JOTFORM_FIELDS.requesterFirst]) && !displayReviewValue(fields[JOTFORM_FIELDS.requesterLast])) {
+      required.push('Requester name is missing.');
+    }
+    if (!displayReviewValue(fields[JOTFORM_FIELDS.caterer])) required.push('Caterer / business area is missing.');
+    if (!displayReviewValue(fields[JOTFORM_FIELDS.endClient])) required.push('End client name is missing.');
+    if (!displayReviewValue(fields[JOTFORM_FIELDS.addressLine1])) required.push('Site address is missing.');
+
+    const hasNetworkedProducts = [
+      sections.pointOfSale,
+      sections.selfServe,
+      sections.mobilePos,
+      sections.orderJourney,
+      sections.sundry
+    ].some((rows) => rows && rows.length);
+
+    const defaults = getNetworkDefaults();
+    if (hasNetworkedProducts && !defaults.networkConnection) warnings.push('Network connection has not been confirmed.');
+    if (hasNetworkedProducts && !defaults.ipDetails) warnings.push('IP setup has not been confirmed.');
+    if (hasNetworkedProducts && !defaults.notes) warnings.push('No IP or MAC-whitelisting notes were provided.');
+    if (sections.installation.length && !$survey('survey-install-date')?.value && !$survey('survey-install-rough')?.value.trim()) {
+      warnings.push('Installation timing has not been provided.');
+    }
+    if (sections.goLive.length && !$survey('survey-golive-date')?.value && !$survey('survey-golive-rough')?.value.trim()) {
+      warnings.push('Go-live timing has not been provided.');
+    }
+    if (!displayReviewValue(fields[JOTFORM_FIELDS.poNumber])) warnings.push('PO number is not provided.');
+
+    const scopeText = String(fields[JOTFORM_FIELDS.scopeOverview] || '').trim();
+    if (!scopeText) {
+      required.push('The site scope overview is missing.');
+    } else if (scopeText.length < 80) {
+      warnings.push('The site scope overview is very short. Confirm that it describes the included solution, installation and site readiness.');
+    }
+
+    return { required: unique(required), warnings: unique(warnings) };
+  }
+
+  function renderSubmissionReview(snapshot) {
+    const content = $survey('survey-review-content');
+    const alerts = $survey('survey-review-alerts');
+    const fields = snapshot.fields;
+    const sections = snapshot.sections;
+
+    $survey('survey-review-reference').textContent = snapshot.reference;
+
+    const { required, warnings } = collectReviewWarnings(snapshot);
+    const alertParts = [];
+
+    if (required.length) {
+      alertParts.push(`
+        <div class="survey-review-alert warning">
+          <strong>Important information needs attention</strong>
+          <ul>${required.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+        </div>`);
+    }
+
+    if (warnings.length) {
+      alertParts.push(`
+        <div class="survey-review-alert warning">
+          <strong>Optional or site-specific information is blank</strong>
+          <ul>${warnings.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+        </div>`);
+    } else if (!required.length) {
+      alertParts.push(`
+        <div class="survey-review-alert success">
+          <strong>No obvious missing information was detected.</strong>
+        </div>`);
+    }
+
+    alerts.innerHTML = alertParts.join('');
+
+    const address = [
+      fields[JOTFORM_FIELDS.addressLine1],
+      fields[JOTFORM_FIELDS.addressLine2],
+      fields[JOTFORM_FIELDS.city],
+      fields[JOTFORM_FIELDS.state],
+      fields[JOTFORM_FIELDS.postal]
+    ].filter((value) => displayReviewValue(value)).join(', ');
+
+    const requestDetails = renderReviewKeyValues('Request and site details', {
+      'Form completion date': fields[JOTFORM_FIELDS.completionDate],
+      'Requester name': [fields[JOTFORM_FIELDS.requesterFirst], fields[JOTFORM_FIELDS.requesterLast]].filter(Boolean).join(' '),
+      'Caterer': fields[JOTFORM_FIELDS.caterer],
+      'End client': fields[JOTFORM_FIELDS.endClient],
+      'Site outlet address': address,
+      'PO number': fields[JOTFORM_FIELDS.poNumber]
+    }, 'Sent to the form header');
+
+    const productSections = [
+      ['Point of Sale', sections.pointOfSale],
+      ['Self-Serve', sections.selfServe],
+      ['Mobile POS', sections.mobilePos],
+      ['Lolly App Ordering', sections.appOrdering],
+      ['Web Ordering', sections.webOrdering],
+      ['Order Journey', sections.orderJourney],
+      ['Sundry Items / Additional Printers', sections.sundry],
+      ['Installation', sections.installation],
+      ['Go-Live Support', sections.goLive],
+      ['Additional Requirements', sections.additionalRequirements]
+    ].map(([title, rows]) => renderReviewRows(title, rows)).filter(Boolean).join('');
+
+    const supplementary = renderReviewKeyValues('Additional form information', {
+      'No go-live support reason': fields[JOTFORM_FIELDS.noGoLiveReason],
+      'Additional site notes': $survey('survey-additional-notes')?.value.trim() || ''
+    }, 'Blank optional values are not sent to Jotform');
+
+    const coverageRows = buildSubmissionCoverage(snapshot);
+    const coverage = `
+      <section class="survey-review-section">
+        <div class="survey-review-section-head">
+          <h4>Submission coverage</h4>
+          <span>${coverageRows.length} calculator line${coverageRows.length === 1 ? '' : 's'} accounted for</span>
+        </div>
+        ${coverageRows.map((entry) => `
+          <article class="survey-review-row">
+            <div class="survey-review-row-title">
+              <strong>${escapeHtml(entry.item)}</strong>
+              <span>${escapeHtml(entry.outlet)}</span>
+            </div>
+            <div class="survey-review-row-grid">
+              <div class="survey-review-cell"><label>Jotform destination</label><p>${escapeHtml(entry.destination)}</p></div>
+              <div class="survey-review-cell"><label>How it is represented</label><p>${escapeHtml(entry.detail)}</p></div>
+            </div>
+          </article>`).join('')}
+      </section>`;
+
+    const scope = `
+      <section class="survey-review-section">
+        <div class="survey-review-section-head">
+          <h4>Scope Overview</h4>
+          <span>Editable site-scope description</span>
+        </div>
+        <pre class="survey-review-scope">${escapeHtml(fields[JOTFORM_FIELDS.scopeOverview] || '')}</pre>
+      </section>`;
+
+    content.innerHTML = requestDetails + productSections + supplementary + coverage + scope;
+
+    const finalButton = $survey('site-survey-submit');
+    finalButton.disabled = required.length > 0;
+    finalButton.title = required.length
+      ? 'Return to the previous step and complete the required information first.'
+      : 'Open the real Jotform with the reviewed information prefilled.';
+
+    if (required.length) {
+      setStatus('Return to the previous step and complete the highlighted essential information before opening Jotform.', 'error');
+    } else {
+      setStatus('Review complete. Nothing has been submitted. The next action opens the real Jotform with these values prefilled.', 'success');
+    }
+  }
+
+  function showFormView() {
+    pendingSubmission = null;
+    setStage('details');
+    setHeader(
+      'Complete the site survey',
+      'Products, quantities, client information and selected services are transferred automatically. Only provide the details the calculator cannot know.'
+    );
+    $survey('site-survey-form-view').style.display = '';
+    $survey('site-survey-review-view').classList.remove('show');
+    $survey('site-survey-review-view').setAttribute('aria-hidden', 'true');
+    $survey('site-survey-confirmation').classList.remove('show');
+    $survey('site-survey-cancel').style.display = '';
+    $survey('site-survey-cancel').textContent = 'Cancel';
+    $survey('site-survey-back').style.display = 'none';
+    $survey('site-survey-back').disabled = false;
+    $survey('site-survey-review').style.display = '';
+    $survey('site-survey-submit').style.display = 'none';
+    $survey('site-survey-submit').disabled = false;
+    $survey('site-survey-submit').textContent = 'Open filled Jotform';
+    $survey('site-survey-review').disabled = false;
+    setStatus('Complete only the site details that are known, then review everything before opening the filled Jotform.', 'success');
+  }
+
+  function showReviewView() {
+    try {
+      pendingSubmission = buildJotformFields();
+      if (!String(pendingSubmission.fields[JOTFORM_FIELDS.scopeOverview] || '').trim()) {
+        throw new Error('The scope overview could not be generated.');
+      }
+
+      renderSubmissionReview(pendingSubmission);
+      setStage('review');
+      setHeader(
+        'Review before opening Jotform',
+        'Nothing has been submitted. Check every transferred value, then go back to edit or open the actual Jotform with the information prefilled.'
+      );
+      $survey('site-survey-form-view').style.display = 'none';
+      $survey('site-survey-review-view').classList.add('show');
+      $survey('site-survey-review-view').setAttribute('aria-hidden', 'false');
+      $survey('site-survey-confirmation').classList.remove('show');
+      $survey('site-survey-cancel').style.display = 'none';
+      $survey('site-survey-back').style.display = '';
+      $survey('site-survey-review').style.display = 'none';
+      $survey('site-survey-submit').style.display = '';
+      $survey('site-survey-review-view').scrollTop = 0;
+    } catch (error) {
+      console.error(error);
+      setStatus(error.message || 'The submission preview could not be prepared.', 'error');
+    }
+  }
+
+  function openSurvey() {
+    try {
+      const selections = getAllSelections();
+      if (!Array.isArray(selections) || !selections.length) {
+        alert('Please select at least one product before completing the site survey.');
+        return;
+      }
+
+      const modal = $survey('site-survey-modal');
+      if (!modal) {
+        throw new Error('The site survey window could not be found in this page.');
+      }
+
+      // Reset and show the survey first so the user always gets visible feedback.
+      currentSurveyReference = getQuoteReference();
+      surveyScopeTouched = false;
+      syncSurveyChoiceDefaults();
+      showFormView();
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+
+      // Populate the transfer summary and editable standard scope after the modal is visible.
+      try {
+        syncScopeOverview(true);
+        renderPrefillPreview();
+      } catch (previewError) {
+        console.error('Site survey preview error:', previewError);
+        setStatus(
+          previewError?.message || 'The product preview could not be prepared. You can close this window and try again.',
+          'error'
+        );
+      }
+    } catch (error) {
+      console.error('Unable to open site survey:', error);
+      alert(error?.message || 'The site survey could not be opened. Please refresh the page and try again.');
+    }
+  }
+
+  function closeSurvey() {
+    pendingSubmission = null;
+    currentSurveyReference = '';
+    surveyScopeTouched = false;
+    $survey('site-survey-modal').classList.remove('open');
+    $survey('site-survey-modal').setAttribute('aria-hidden', 'true');
+  }
+
+  function submitSurvey() {
+    const openButton = $survey('site-survey-submit');
+
+    if (!pendingSubmission) {
+      setStatus('Please review the information before opening Jotform.', 'error');
+      return;
+    }
+
+    openButton.disabled = true;
+    openButton.textContent = 'Opening Jotform…';
+    $survey('site-survey-back').disabled = true;
+    setStatus('Preparing the filled Jotform. This does not submit the form…');
+
+    let popup = null;
+
+    try {
+      // Open the tab immediately from the user's click so corporate popup
+      // blockers do not prevent the handoff.
+      popup = window.open('', '_blank');
+      if (!popup) {
+        throw new Error('Your browser blocked the Jotform tab. Allow pop-ups for this page and try again.');
+      }
+
+      popup.document.write(`<!doctype html><html><head><title>Opening Jotform…</title></head><body style="font-family:Segoe UI,Arial,sans-serif;padding:32px;color:#172235"><p>Preparing the filled Jotform…</p></body></html>`);
+      popup.document.close();
+
+      const prefilledUrl = buildJotformPrefillUrl(pendingSubmission);
+      popup.location.replace(prefilledUrl);
+
+      $survey('site-survey-form-view').style.display = 'none';
+      $survey('site-survey-review-view').classList.remove('show');
+      $survey('site-survey-review-view').setAttribute('aria-hidden', 'true');
+      $survey('site-survey-confirmation').classList.add('show');
+      setStage('submit');
+      setHeader(
+        'Filled Jotform opened',
+        'The actual form has opened in a new tab with the reviewed values prefilled. Nothing has been submitted by the calculator.'
+      );
+      $survey('site-survey-reference').textContent = `Calculator reference: ${pendingSubmission.reference}`;
+      $survey('site-survey-cancel').style.display = '';
+      $survey('site-survey-cancel').textContent = 'Close';
+      $survey('site-survey-back').style.display = 'none';
+      $survey('site-survey-review').style.display = 'none';
+      $survey('site-survey-submit').style.display = 'none';
+      setStatus(
+        "Review and amend the actual Jotform in the new tab. It will only be sent when you press Jotform's own Submit button.",
+        'success'
+      );
+      pendingSubmission = null;
+    } catch (error) {
+      console.error(error);
+      try { popup?.close(); } catch (_) {}
+      setStatus(error.message || 'The filled Jotform could not be opened. Please try again.', 'error');
+      openButton.disabled = false;
+      openButton.textContent = 'Open filled Jotform';
+      $survey('site-survey-back').disabled = false;
+    }
+  }
+
+  // Use delegated controls rather than binding only once on DOMContentLoaded.
+  // This remains reliable if another part of the calculator redraws or replaces
+  // a button after the page has loaded.
+  function handleSurveyControlClick(event) {
+    const control = event.target.closest(
+      '#complete-site-survey, #rail-site-survey, #site-survey-close, #site-survey-cancel, #site-survey-back, #site-survey-review, #site-survey-submit, #survey-refresh-scope'
+    );
+
+    if (control) {
+      event.preventDefault();
+
+      switch (control.id) {
+        case 'complete-site-survey':
+        case 'rail-site-survey':
+          openSurvey();
+          break;
+        case 'site-survey-close':
+        case 'site-survey-cancel':
+          closeSurvey();
+          break;
+        case 'site-survey-back':
+          showFormView();
+          break;
+        case 'site-survey-review':
+          showReviewView();
+          break;
+        case 'site-survey-submit':
+          submitSurvey();
+          break;
+        case 'survey-refresh-scope':
+          surveyScopeTouched = false;
+          syncScopeOverview(true);
+          setStatus('The suggested site scope has been refreshed. Review and edit it before continuing.', 'success');
+          break;
+      }
+      return;
+    }
+
+    const modal = $survey('site-survey-modal');
+    if (modal && event.target === modal) {
+      closeSurvey();
+    }
+  }
+
+  document.addEventListener('click', handleSurveyControlClick);
+
+  function handleSurveyFieldUpdate(event) {
+    const target = event.target;
+    if (!target || !$survey('site-survey-modal')?.classList.contains('open')) return;
+
+    if (target.id === 'survey-scope-overview') {
+      if (!updatingSurveyScope) surveyScopeTouched = true;
+      return;
+    }
+
+    const shouldRefreshScope =
+      target.matches('input[name="survey-install-type"], input[name="survey-golive-type"], input[name="survey-additional-requirement"]') ||
+      [
+        'survey-network', 'survey-ip', 'survey-network-notes',
+        'survey-install-date', 'survey-install-time', 'survey-install-rough',
+        'survey-golive-date', 'survey-golive-time', 'survey-golive-rough',
+        'survey-no-golive-reason', 'survey-additional-notes'
+      ].includes(target.id);
+
+    if (shouldRefreshScope && !surveyScopeTouched) {
+      syncScopeOverview(true);
+    }
+  }
+
+  document.addEventListener('input', handleSurveyFieldUpdate);
+  document.addEventListener('change', handleSurveyFieldUpdate);
+})();
+</script>
+
+</body>
 </html>
 
 
