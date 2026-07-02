@@ -781,8 +781,11 @@
       background: #ffffff;
       padding: 0.75rem;
       margin-bottom: 0.85rem;
-      break-inside: avoid;
-      page-break-inside: avoid;
+      /* Allow long quote tables to use the remaining page space and
+         continue naturally on the following page. Individual rows are
+         still kept together by the print rules below. */
+      break-inside: auto;
+      page-break-inside: auto;
     }
 
     .quote-line-table-title {
@@ -812,6 +815,44 @@
       .quote-list-meta,
       .quote-total-row {
         gap: 0.55rem;
+      }
+
+      /* Quote tables may start in the available space on the current page
+         and continue on the next page instead of moving as one large block. */
+      .quote-line-table-wrap {
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+        overflow: visible !important;
+        -webkit-box-decoration-break: clone;
+        box-decoration-break: clone;
+      }
+
+      .quote-line-table-title {
+        break-after: avoid-page;
+        page-break-after: avoid;
+      }
+
+      .quote-line-table-wrap .proposal-table {
+        break-inside: auto !important;
+        page-break-inside: auto !important;
+      }
+
+      .quote-line-table-wrap .proposal-table thead {
+        display: table-header-group;
+      }
+
+      .quote-line-table-wrap .proposal-table tbody {
+        display: table-row-group;
+      }
+
+      .quote-line-table-wrap .proposal-table tr {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+      }
+
+      .quote-line-table-wrap .proposal-total-row {
+        break-before: avoid-page;
+        page-break-before: avoid;
       }
     }
 
@@ -988,38 +1029,45 @@
     .quote-import-status.success { color: #087653; }
     .quote-import-status.warning { color: #9a5b00; }
     .quote-import-status.error { color: #b42318; }
-    /* PDF re-import record. This is intentionally rendered as very small,
-       dark text in normal document flow so all common Print-to-PDF engines
-       retain it in the PDF text layer. White-on-white or zero-height text is
-       not reliable across Edge, Chrome and Windows PDF drivers. */
+    /* PDF re-import record.
+       The payload remains real selectable PDF text for reliable re-import,
+       but it is positioned underneath the quote footer. The footer is painted
+       over it with an opaque white background, so the encoded record is not
+       visible and does not add any space or additional pages to the quote. */
+    .quote-list-document {
+      position: relative;
+    }
+
     .quote-payload-marker {
-      display: block;
-      margin: 2mm 8mm 1mm;
-      padding-top: 1mm;
-      border-top: 0.2pt solid #d7dde3;
-      color: #5f6b78;
+      position: absolute;
+      left: 8mm;
+      right: 8mm;
+      bottom: 1mm;
+      z-index: 1;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      color: #111111;
       font-family: "Courier New", Courier, monospace;
-      font-size: 2.8pt;
-      line-height: 3.25pt;
+      font-size: 0.1pt;
+      line-height: 0.1pt;
       letter-spacing: 0;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
       word-break: break-all;
-      page-break-inside: avoid;
-      break-inside: avoid;
       pointer-events: none;
       user-select: text;
     }
 
     .quote-payload-marker::before {
-      content: "Internal calculator re-import record - do not edit";
-      display: block;
-      margin-bottom: 0.6mm;
-      font-family: Arial, sans-serif;
-      font-size: 4.2pt;
-      line-height: 5pt;
-      font-weight: 700;
-      color: #4b5563;
+      content: none;
+      display: none;
+    }
+
+    .quote-list-document .proposal-footer {
+      position: relative;
+      z-index: 2;
+      background: #ffffff;
     }
 
     @media (min-width: 768px) {
@@ -4343,7 +4391,6 @@
           Lolly Calculation System
         </h1>
         <p class="text-xl text-gray-600 mt-2">Elior UK</p>
-        <p class="subcopy">Build an outlet-by-outlet quote and export the final itemised list when ready.</p>
 </div>
 
     <div id="workflow-nav" class="workflow-nav">
@@ -4389,7 +4436,7 @@
           <label class="block text-sm font-semibold text-gray-700 mb-2">Business Area <span class="text-red-500">*</span></label>
           <select id="business-area" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#125b82] focus:border-transparent transition bg-white cursor-pointer">
             <option value="">Select Business Area</option>
-            <option value="Education including Universities">Education including Universities</option>
+            <option value="Education inc. Universities">Education inc. Universities</option>
             <option value="Care & Retirement Living">Care & Retirement Living</option>
             <option value="Healthcare">Healthcare</option>
             <option value="Lexington">Lexington</option>
@@ -4433,7 +4480,7 @@
 
       <!-- Optional Address Details (collapsible section) -->
       <details class="mb-8 p-4 border border-gray-300 rounded-lg hover:border-gray-400 transition">
-        <summary class="cursor-pointer font-semibold text-gray-700 select-none">+ Address Details (Optional)</summary>
+        <summary class="cursor-pointer font-semibold text-gray-700 select-none"> + Address Details (Optional)</summary>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">Street Address</label>
@@ -5092,7 +5139,7 @@
       cat7: 'Training & Support'
     };
     const businessAreaManagers = {
-      'Education including Universities': { name: "Rory O'Gorman", email: 'rory.ogorman@elior.co.uk' },
+      'Education inc. Universities': { name: "Rory O'Gorman", email: 'rory.ogorman@elior.co.uk' },
       'Care & Retirement Living': { name: "Rory O'Gorman", email: 'rory.ogorman@elior.co.uk' },
       'Healthcare': { name: 'Calvin Grant', email: 'calvin.grant@elior.co.uk' },
       'Lexington': { name: 'Calvin Grant', email: 'calvin.grant@elior.co.uk' },
@@ -6999,7 +7046,6 @@
       const quoteReference = currentQuoteReference || `LQ-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(Date.now()).slice(-4)}`;
       currentQuoteReference = quoteReference;
       const portableMarker = buildQuotePdfMarker(quoteReference);
-      const allRows = [...quote.hardwareRows.map(row => ({ ...row, type: 'One-off' })), ...quote.monthlyRows.map(row => ({ ...row, type: 'Monthly' }))];
 
       document.getElementById('quote-pdf-panel').innerHTML = `
         <article class="proposal-document quote-list-document" style="position:relative">
@@ -7041,16 +7087,6 @@
           </header>
 
           <main class="proposal-doc-body">
-            <section class="proposal-section">
-              <h2 class="proposal-section-title">Items Included In This Quote</h2>
-              <table class="proposal-table">
-                <thead><tr><th>Type</th><th>Outlet</th><th>Item</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead>
-                <tbody>
-                  ${allRows.map(row => `<tr><td>${quoteEscape(row.type)}</td><td>${quoteEscape(row.outlet)}</td><td><strong>${quoteEscape(row.name)}</strong>${row.addons.length ? `<div class="text-xs proposal-muted mt-1">Add-ons: ${row.addons.map(addon => quoteEscape(addon.name)).join(', ')}</div>` : ''}</td><td>${Number(row.qty) || 1}</td><td>${quoteMoney(row.unitCost)}</td><td>${quoteMoney(row.subtotal)}${row.type === 'Monthly' ? ' /mo' : ''}</td></tr>`).join('')}
-                </tbody>
-              </table>
-            </section>
-
             <section class="proposal-section">
               <h2 class="proposal-section-title">Breakdown</h2>
               ${quoteTable('One-off Items', quote.hardwareRows, 'One-off Total', quote.totals.hardwareTotal)}
