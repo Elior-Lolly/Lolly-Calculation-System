@@ -4941,7 +4941,6 @@
       'Stadia': { name: 'Rob Taylor-Brown', email: 'rob.taylorbrown-ext@elior.co.uk' }
     };
 
-    // ===== LOAD DATA FROM SERVER =====
     function readStoredJson(key, fallback = null) {
       try {
         const raw = localStorage.getItem(key);
@@ -9345,8 +9344,6 @@
     let popup = null;
 
     try {
-      // Open the tab immediately from the user's click so corporate popup
-      // blockers do not prevent the handoff.
       popup = window.open('', '_blank');
       if (!popup) {
         throw new Error('Your browser blocked the Jotform tab. Allow pop-ups for this page and try again.');
@@ -9388,9 +9385,6 @@
     }
   }
 
-  // Use delegated controls rather than binding only once on DOMContentLoaded.
-  // This remains reliable if another part of the calculator redraws or replaces
-  // a button after the page has loaded.
   function handleSurveyControlClick(event) {
     const control = event.target.closest(
       '#complete-site-survey, #rail-site-survey, #site-survey-close, #site-survey-cancel, #site-survey-back, #site-survey-review, #site-survey-submit, #survey-refresh-scope'
