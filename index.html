@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lolly Calculation System</title>
-  <!-- Zero-setup Jotform prefill build: 2026-06-30 -->
+  <!-- Zero-setup Jotform prefill build: 2026-06-30 v6 -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
@@ -476,6 +476,37 @@
       box-shadow: 0 0 0 3px rgba(18, 91, 130, 0.14);
     }
 
+
+    .proposal-upload-control {
+      display: flex;
+      align-items: stretch;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    .proposal-upload-control .proposal-field {
+      flex: 1 1 260px;
+      min-width: 0;
+    }
+
+    .proposal-image-remove {
+      flex: 0 0 auto;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.75rem;
+      background: #ffffff;
+      color: #475569;
+      padding: 0.72rem 0.95rem;
+      font-size: 0.86rem;
+      font-weight: 750;
+      transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+    }
+
+    .proposal-image-remove:hover {
+      border-color: #b42318;
+      background: #fff5f4;
+      color: #b42318;
+    }
+
     .proposal-shell {
       background: linear-gradient(180deg, #ffffff 0%, #f7fafb 100%);
       border: 1px solid #dfe8ee;
@@ -898,6 +929,105 @@
       min-width: 150px;
       background: #125b82;
       border-color: rgba(18, 91, 130, 0.28);
+    }
+
+
+    .quote-import-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      margin: 0 0 1.75rem;
+      padding: 1.1rem 1.2rem;
+      border: 1px solid #cfe0e9;
+      border-radius: 1rem;
+      background: linear-gradient(135deg, #f4fafc 0%, #f8fbfd 100%);
+    }
+
+    .quote-import-panel-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .quote-import-panel h3 {
+      margin: 0;
+      color: #172235;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .quote-import-panel p {
+      margin: 0;
+      color: #5e6d80;
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .quote-import-button {
+      align-self: flex-start;
+      border: 1px solid #125b82;
+      border-radius: 0.75rem;
+      background: #ffffff;
+      color: #125b82;
+      padding: 0.72rem 1rem;
+      font-weight: 750;
+      transition: background 160ms ease, color 160ms ease;
+    }
+
+    .quote-import-button:hover {
+      background: #125b82;
+      color: #ffffff;
+    }
+
+    .quote-import-status {
+      min-height: 1.25rem;
+      font-size: 0.82rem;
+      font-weight: 650;
+    }
+
+    .quote-import-status.success { color: #087653; }
+    .quote-import-status.warning { color: #9a5b00; }
+    .quote-import-status.error { color: #b42318; }
+    /* PDF re-import record. This is intentionally rendered as very small,
+       dark text in normal document flow so all common Print-to-PDF engines
+       retain it in the PDF text layer. White-on-white or zero-height text is
+       not reliable across Edge, Chrome and Windows PDF drivers. */
+    .quote-payload-marker {
+      display: block;
+      margin: 2mm 8mm 1mm;
+      padding-top: 1mm;
+      border-top: 0.2pt solid #d7dde3;
+      color: #5f6b78;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 2.8pt;
+      line-height: 3.25pt;
+      letter-spacing: 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-all;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      pointer-events: none;
+      user-select: text;
+    }
+
+    .quote-payload-marker::before {
+      content: "Internal calculator re-import record - do not edit";
+      display: block;
+      margin-bottom: 0.6mm;
+      font-family: Arial, sans-serif;
+      font-size: 4.2pt;
+      line-height: 5pt;
+      font-weight: 700;
+      color: #4b5563;
+    }
+
+    @media (min-width: 768px) {
+      .quote-import-panel {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
     }
     @media print {
       @page {
@@ -4236,6 +4366,18 @@
     <div class="max-w-5xl mx-auto">
       <h2 class="text-2xl font-bold text-gray-800 mb-3">Quote Information</h2>
       <p class="text-gray-600 mb-8">Please provide your details to get started with your Lolly configuration. Kindly note, this is an automatically generated quotation pending validation by the relevant IT representative.</p>
+
+      <section class="quote-import-panel" aria-labelledby="quote-import-title">
+        <div class="quote-import-panel-copy">
+          <h3 id="quote-import-title">Reuse a previous quote</h3>
+          <p>Upload an original quote PDF exported by this calculator to restore the client, outlets, products, quantities and add-ons. New PDFs include a verified re-import record; older text-based calculator PDFs are recovered from their visible quote table. The PDF is processed only in this browser and is not uploaded or retained.</p>
+          <p id="quote-import-status" class="quote-import-status" role="status"></p>
+        </div>
+        <div>
+          <button type="button" id="import-quote-pdf" class="quote-import-button">Import previous quote PDF</button>
+          <input type="file" id="quote-pdf-input" accept="application/pdf,.pdf" hidden>
+        </div>
+      </section>
       
       <!-- Core Information -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -4268,8 +4410,8 @@
         </div>
       </div>
 
-      <!-- Site & Client Info -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <!-- Site, Client & Version Info -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div>
           <label class="block text-sm font-semibold text-gray-700 mb-2">Site Name <span class="text-red-500">*</span></label>
           <input type="text" id="site-name" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#125b82] focus:border-transparent transition" placeholder="Site or location name">
@@ -4277,6 +4419,15 @@
         <div>
           <label class="block text-sm font-semibold text-gray-700 mb-2">End Client Name <span class="text-red-500">*</span></label>
           <input type="text" id="end-client-name" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#125b82] focus:border-transparent transition" placeholder="End client or operator name">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Quote Version</label>
+          <input type="hidden" id="quote-version" value="v01">
+          <div class="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 flex items-center justify-between" aria-live="polite">
+            <span id="quote-version-display" class="font-bold text-gray-900">v01</span>
+            <span class="text-xs font-semibold text-[#125b82] uppercase tracking-wide">Automatic</span>
+          </div>
+          <p class="text-xs text-gray-500 mt-2">New quotes start at v01. Importing a previous quote automatically creates the next version.</p>
         </div>
       </div>
 
@@ -4308,8 +4459,9 @@
       </details>
 
       <div class="flex flex-col md:flex-row gap-4">
-        <button id="intake-continue" class="flex-1 bg-[#125b82] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#0f3f5c] transition-colors">Continue to Quote</button>
-        <button id="intake-edit" class="flex-1 px-6 py-3 rounded-xl font-semibold border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors hidden">Edit Information</button>
+        <button type="button" id="intake-continue" class="flex-1 bg-[#125b82] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#0f3f5c] transition-colors">Continue to Quote</button>
+        <button type="button" id="intake-clear-information" class="px-6 py-3 rounded-xl font-semibold border border-gray-300 text-gray-700 hover:border-red-300 hover:bg-red-50 hover:text-red-700 transition-colors">Clear all</button>
+        <button type="button" id="intake-edit" class="flex-1 px-6 py-3 rounded-xl font-semibold border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors hidden">Edit Information</button>
       </div>
     </div>
   </div>
@@ -4349,6 +4501,10 @@
           <div>
             <p class="text-sm opacity-90">Outlets</p>
             <p class="text-lg font-bold" id="display-outlets"> - </p>
+          </div>
+          <div>
+            <p class="text-sm opacity-90">Version</p>
+            <p class="text-lg font-bold" id="display-version">v01</p>
           </div>
         </div>
         <button 
@@ -4420,7 +4576,6 @@
         </div>
         <div class="grid gap-2 mt-5">
           <button id="rail-download-quote" class="px-4 py-2 rounded-lg bg-[#125b82] text-white font-semibold hover:bg-[#0f3f5c]">Download Quote</button>
-          <button id="rail-email-quote" class="px-4 py-2 rounded-lg border border-[#125b82] text-[#125b82] font-semibold hover:bg-[#e8f3f7]">Email Quote</button>
           <button type="button" id="rail-site-survey" class="px-4 py-2 rounded-lg bg-[#0c7a5a] text-white font-semibold hover:bg-[#075f45]">Complete site survey</button>
           <button id="rail-open-proposal" class="px-4 py-2 rounded-lg border border-[#0c7a5a] text-[#0c7a5a] font-semibold hover:bg-[#eef8f4]">Tech Proposal</button>
         </div>
@@ -4438,7 +4593,6 @@
         <div class="quote-review-actions no-print">
           <button id="clear-all" class="quote-review-btn secondary">Clear all</button>
           <button type="button" id="complete-site-survey" class="quote-review-btn primary">Complete site survey</button>
-          <button id="finalise-quote" class="quote-review-btn secondary">Email quote</button>
           <button id="download-quote" class="quote-review-btn secondary">Download quote</button>
         </div>
       </div>
@@ -4515,11 +4669,17 @@
           </div>
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">Cover image upload</label>
-            <input id="proposal-cover-image" type="file" accept="image/*" class="proposal-field">
+            <div class="proposal-upload-control">
+              <input id="proposal-cover-image" type="file" accept="image/*" class="proposal-field">
+              <button type="button" id="proposal-cover-image-remove" class="proposal-image-remove hidden">Remove image</button>
+            </div>
           </div>
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2">Client logo upload</label>
-            <input id="proposal-client-logo" type="file" accept="image/*" class="proposal-field">
+            <div class="proposal-upload-control">
+              <input id="proposal-client-logo" type="file" accept="image/*" class="proposal-field">
+              <button type="button" id="proposal-client-logo-remove" class="proposal-image-remove hidden">Remove image</button>
+            </div>
           </div>
           <div class="md:col-span-2">
             <label class="block text-sm font-semibold text-gray-700 mb-2">Notes/disclaimer override</label>
@@ -4915,6 +5075,7 @@
     let products = {};
     let selectedState = {}; // Structure: { outletId: { productId: { id, name, price, qty, monthly } } }
     let currentOutlet = 1; // Track which outlet is currently being edited
+    let currentQuoteReference = ''; // Kept in memory; restored from an imported quote PDF when available.
     let tierPresets = { basic: [], standard: [], premium: [] };
     let tierVisibility = { basic: false, standard: false, premium: false };
     let editingProduct = null;
@@ -4941,6 +5102,7 @@
       'Stadia': { name: 'Rob Taylor-Brown', email: 'rob.taylorbrown-ext@elior.co.uk' }
     };
 
+    // ===== LOAD DATA FROM SERVER =====
     function readStoredJson(key, fallback = null) {
       try {
         const raw = localStorage.getItem(key);
@@ -5360,29 +5522,19 @@
       return productsSaved && configSaved;
     }
 
+    // Quote/customer selections are deliberately not stored in browser storage.
+    // The page keeps them only in memory; the exported PDF is the explicit
+    // portable record the user can choose to keep and import later.
     function saveWorkingState() {
-      writeStoredJson(STORAGE_KEYS.workingState, {
-        intakeData,
-        selectedState,
-        currentOutlet
-      });
+      return true;
     }
 
     function loadWorkingState() {
-      const savedState = readStoredJson(STORAGE_KEYS.workingState);
-      if (!savedState || typeof savedState !== 'object') return;
-
-      if (savedState.selectedState && typeof savedState.selectedState === 'object') {
-        selectedState = normalizeSelectedStateText(savedState.selectedState);
+      try {
+        localStorage.removeItem(STORAGE_KEYS.workingState);
+      } catch (_) {
+        // Storage may be disabled; there is nothing to restore in either case.
       }
-      if (Number.isInteger(savedState.currentOutlet) && savedState.currentOutlet > 0) {
-        currentOutlet = savedState.currentOutlet;
-      }
-      if (savedState.intakeData && typeof savedState.intakeData === 'object') {
-        intakeData = { ...intakeData, ...savedState.intakeData };
-      }
-
-      syncAddonProductsForOutlet(currentOutlet);
     }
 
     function initializeProducts() {
@@ -5497,8 +5649,66 @@
       city: '',
       stateProvince: '',
       postalZipCode: '',
-      numberOutlets: 1
+      numberOutlets: 1,
+      quoteVersion: 'v01'
     };
+
+    function normaliseQuoteVersion(value) {
+      const cleaned = String(value || '').trim();
+      const numberMatch = cleaned.match(/^(?:v(?:ersion)?\s*)?(\d+)$/i);
+      if (numberMatch) return `v${String(Number(numberMatch[1]) || 1).padStart(2, '0')}`;
+      return 'v01';
+    }
+
+    function incrementQuoteVersion(value) {
+      const normalised = normaliseQuoteVersion(value);
+      const number = Number(normalised.replace(/^v/i, '')) || 1;
+      return `v${String(number + 1).padStart(2, '0')}`;
+    }
+
+    function setAutomaticQuoteVersion(value) {
+      const normalised = normaliseQuoteVersion(value);
+      intakeData.quoteVersion = normalised;
+      const field = document.getElementById('quote-version');
+      const display = document.getElementById('quote-version-display');
+      if (field) field.value = normalised;
+      if (display) display.textContent = normalised;
+      return normalised;
+    }
+
+    function sanitisePdfFilenamePart(value, fallback) {
+      const cleaned = String(value || '')
+        .normalize('NFKD')
+        .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/[. ]+$/g, '')
+        .slice(0, 80);
+      return cleaned || fallback;
+    }
+
+    function extractQuoteVersionFromFilename(filename) {
+      const match = String(filename || '').match(/(?:^|[ _-])(v\d{1,4})(?=[ _.-]|$)/i);
+      return match ? normaliseQuoteVersion(match[1]) : 'v01';
+    }
+
+    function buildQuotePdfFilename() {
+      const now = new Date();
+      const date = now.toISOString().slice(0, 10);
+      const reference = (typeof getQuoteReference === 'function')
+        ? getQuoteReference()
+        : (currentQuoteReference || `LQ-${date.replace(/-/g, '')}-${String(Date.now()).slice(-4)}`);
+      currentQuoteReference = reference;
+      const versionField = document.getElementById('quote-version');
+      const version = setAutomaticQuoteVersion(versionField?.value || intakeData.quoteVersion || 'v01');
+      return [
+        sanitisePdfFilenamePart(reference, 'Quote'),
+        sanitisePdfFilenamePart(intakeData.endClientName, 'Client'),
+        sanitisePdfFilenamePart(intakeData.siteName, 'Site'),
+        sanitisePdfFilenamePart(version, 'v01'),
+        date
+      ].join(' ') + '.pdf';
+    }
 
     function validateIntakeForm() {
       const requestor = document.getElementById('requestor-name')?.value.trim();
@@ -5521,11 +5731,12 @@
       intakeData.siteName = document.getElementById('site-name')?.value.trim() || '';
       intakeData.endClientName = document.getElementById('end-client-name')?.value.trim() || '';
       intakeData.streetAddress = document.getElementById('street-address')?.value.trim() || '';
-      intakeData.streetAddressLine2 = document.getElementById('street-address-line-2')?.value.trim() || '';
+      intakeData.streetAddressLine2 = document.getElementById('street-address-line2')?.value.trim() || '';
       intakeData.city = document.getElementById('city')?.value.trim() || '';
       intakeData.stateProvince = document.getElementById('state-province')?.value.trim() || '';
       intakeData.postalZipCode = document.getElementById('postal-zip-code')?.value.trim() || '';
       intakeData.numberOutlets = parseInt(document.getElementById('number-outlets')?.value, 10) || 1;
+      setAutomaticQuoteVersion(document.getElementById('quote-version')?.value || intakeData.quoteVersion || 'v01');
       saveWorkingState();
     }
 
@@ -5539,6 +5750,80 @@
       }
     }
 
+    function clearIntakeInformation() {
+      const hasAnyInformation = [
+        'requestor-name',
+        'business-area',
+        'site-name',
+        'end-client-name',
+        'street-address',
+        'street-address-line2',
+        'city',
+        'state-province',
+        'postal-zip-code',
+        'quote-version'
+      ].some(id => {
+        const field = document.getElementById(id);
+        if (!field) return false;
+        const value = String(field.value || '').trim();
+        return id === 'quote-version' ? normaliseQuoteVersion(value) !== 'v01' : Boolean(value);
+      }) || Number(document.getElementById('number-outlets')?.value || 1) !== 1;
+
+      if (hasAnyInformation && !window.confirm('Clear all quote information entered in this section?')) {
+        return;
+      }
+
+      [
+        'requestor-name',
+        'site-name',
+        'end-client-name',
+        'street-address',
+        'street-address-line2',
+        'city',
+        'state-province',
+        'postal-zip-code'
+      ].forEach(id => {
+        const field = document.getElementById(id);
+        if (field) field.value = '';
+      });
+
+      const businessArea = document.getElementById('business-area');
+      if (businessArea) businessArea.value = '';
+
+      setAutomaticQuoteVersion('v01');
+
+      const outlets = document.getElementById('number-outlets');
+      if (outlets) outlets.value = '1';
+
+      intakeData = {
+        requestorName: '',
+        businessArea: '',
+        endClientName: '',
+        siteName: '',
+        streetAddress: '',
+        streetAddressLine2: '',
+        city: '',
+        stateProvince: '',
+        postalZipCode: '',
+        numberOutlets: 1,
+        quoteVersion: 'v01'
+      };
+
+      const addressDetails = document.querySelector('#intake-form-section details');
+      if (addressDetails) addressDetails.open = false;
+
+      const importInput = document.getElementById('quote-pdf-input');
+      if (importInput) importInput.value = '';
+
+      const importStatus = document.getElementById('quote-import-status');
+      if (importStatus) {
+        importStatus.textContent = '';
+        importStatus.className = 'quote-import-status';
+      }
+
+      document.getElementById('requestor-name')?.focus();
+    }
+
     function showIntakeDisplay() {
       document.getElementById('intake-form-section').classList.add('hidden');
       document.getElementById('intake-display-section').classList.remove('hidden');
@@ -5550,6 +5835,7 @@
       setDisplayField('display-state', intakeData.stateProvince, { optional: true });
       setDisplayField('display-postal', intakeData.postalZipCode, { optional: true });
       setDisplayField('display-outlets', intakeData.numberOutlets);
+      setDisplayField('display-version', normaliseQuoteVersion(intakeData.quoteVersion || 'v01'));
       initializeOutletTabs();
       showQuoteSections();
       currentOutlet = Math.min(currentOutlet || 1, Number(intakeData.numberOutlets) || 1);
@@ -5563,11 +5849,12 @@
       const siteInput = document.getElementById('site-name');
       const clientInput = document.getElementById('end-client-name');
       const streetInput = document.getElementById('street-address');
-      const line2Input = document.getElementById('street-address-line-2');
+      const line2Input = document.getElementById('street-address-line2');
       const cityInput = document.getElementById('city');
       const stateInput = document.getElementById('state-province');
       const postalInput = document.getElementById('postal-zip-code');
       const outletsInput = document.getElementById('number-outlets');
+      const quoteVersionInput = document.getElementById('quote-version');
 
       if (requestorInput) requestorInput.value = intakeData.requestorName || '';
       if (businessInput) businessInput.value = intakeData.businessArea || '';
@@ -5579,6 +5866,7 @@
       if (stateInput) stateInput.value = intakeData.stateProvince || '';
       if (postalInput) postalInput.value = intakeData.postalZipCode || '';
       if (outletsInput) outletsInput.value = intakeData.numberOutlets || 1;
+      if (quoteVersionInput) setAutomaticQuoteVersion(intakeData.quoteVersion || 'v01');
 
       if (intakeData.businessArea) {
         showIntakeDisplay();
@@ -5632,6 +5920,8 @@
       }
     });
 
+    document.getElementById('intake-clear-information').addEventListener('click', clearIntakeInformation);
+
     document.getElementById('intake-edit').addEventListener('click', showIntakeForm);
     document.getElementById('intake-edit-btn').addEventListener('click', showIntakeForm);
 
@@ -5662,10 +5952,6 @@
 
     document.getElementById('rail-download-quote').addEventListener('click', () => {
       document.getElementById('download-quote').click();
-    });
-
-    document.getElementById('rail-email-quote').addEventListener('click', () => {
-      document.getElementById('finalise-quote').click();
     });
 
     document.getElementById('rail-open-proposal').addEventListener('click', () => {
@@ -6674,12 +6960,13 @@
       });
 
       return {
-        clientName: intakeData.siteName || intakeData.endClientName || 'Client Name',
+        clientName: intakeData.endClientName || 'Client Name',
         requester: intakeData.requestorName || 'Lolly Quote System',
         businessArea: intakeData.businessArea || 'TBC',
         siteName: intakeData.siteName || 'TBC',
         address: [intakeData.streetAddress, intakeData.streetAddressLine2, intakeData.city, intakeData.stateProvince, intakeData.postalZipCode].filter(Boolean).join(', ') || 'TBC',
         quoteDate: new Date().toLocaleDateString('en-GB'),
+        quoteVersion: normaliseQuoteVersion(intakeData.quoteVersion || 'v01'),
         outletCount: Math.max(Number(intakeData.numberOutlets) || 1, Object.keys(selectedState || {}).length || 1),
         selectedProducts,
         totals: { ...totals, annualOpex },
@@ -6709,11 +6996,13 @@
 
     function renderQuotePdfPreview() {
       const quote = quoteBuildPdfData();
-      const quoteReference = `LQ-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(Date.now()).slice(-4)}`;
+      const quoteReference = currentQuoteReference || `LQ-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(Date.now()).slice(-4)}`;
+      currentQuoteReference = quoteReference;
+      const portableMarker = buildQuotePdfMarker(quoteReference);
       const allRows = [...quote.hardwareRows.map(row => ({ ...row, type: 'One-off' })), ...quote.monthlyRows.map(row => ({ ...row, type: 'Monthly' }))];
 
       document.getElementById('quote-pdf-panel').innerHTML = `
-        <article class="proposal-document quote-list-document">
+        <article class="proposal-document quote-list-document" style="position:relative">
           <header class="quote-list-header">
             <div class="quote-list-title-row">
               <div>
@@ -6724,6 +7013,8 @@
               <div class="quote-reference-box">
                 <p class="proposal-small-label">Quote reference</p>
                 <p class="font-extrabold text-gray-900 mb-2">${quoteEscape(quoteReference)}</p>
+                <p class="proposal-small-label">Version</p>
+                <p class="font-bold text-gray-900 mb-2">${quoteEscape(quote.quoteVersion)}</p>
                 <p class="proposal-small-label">Date</p>
                 <p class="font-bold text-gray-900 mb-0">${quoteEscape(quote.quoteDate)}</p>
               </div>
@@ -6779,8 +7070,11 @@
 
             <section class="proposal-section quote-note-box">
               <strong>Note:</strong> This quote lists the selected items and indicative costs only. Final pricing remains subject to Lolly review and approval by the relevant business area or IT representative.
+              <div class="text-xs proposal-muted mt-2">Verified reusable quote record included - import the original saved PDF into the Lolly Calculation System.</div>
             </section>
           </main>
+
+          <div class="quote-payload-marker" aria-label="Internal quote re-import record">${quoteEscape(portableMarker)}</div>
 
           <footer class="proposal-footer">
             <span>Elior / Lolly quote  -  ${quoteEscape(quoteReference)}</span>
@@ -6796,11 +7090,26 @@
         return;
       }
 
+      saveIntakeData();
       renderQuotePdfPreview();
       const panel = document.getElementById('quote-pdf-panel');
       panel.classList.remove('hidden');
       document.body.classList.add('printing-quote');
-      window.print();
+
+      const filename = buildQuotePdfFilename();
+      const originalTitle = document.title;
+      document.title = filename.replace(/\.pdf$/i, '');
+      panel.dataset.suggestedFilename = filename;
+
+      let restored = false;
+      const restoreTitle = () => {
+        if (restored) return;
+        restored = true;
+        document.title = originalTitle;
+      };
+      window.addEventListener('afterprint', restoreTitle, { once: true });
+      setTimeout(restoreTitle, 60000);
+      setTimeout(() => window.print(), 50);
     }
     function buildQuotePayload() {
       const fullName = intakeData.requestorName || '';
@@ -7160,7 +7469,6 @@
       openEmailQuoteModal();
     }
 
-    document.getElementById('finalise-quote').addEventListener('click', sendQuoteEmail);
     document.getElementById('download-quote').addEventListener('click', downloadQuotePdf);
 
     // ===== TIER MANAGEMENT =====
@@ -7640,6 +7948,790 @@
       e.target.value = '';
     });
 
+    // ===== QUOTE PDF IMPORT / RESTORE =====
+    const QUOTE_PDF_MARKER_V2_START = 'LOLLYQUOTE_V2_BEGIN';
+    const QUOTE_PDF_MARKER_V2_END = 'LOLLYQUOTE_V2_END';
+    const QUOTE_PDF_MARKER_START = 'LOLLYQUOTE_V1_BEGIN';
+    const QUOTE_PDF_MARKER_END = 'LOLLYQUOTE_V1_END';
+    let quotePdfImportInProgress = false;
+
+    function normaliseQuoteImportName(value) {
+      return String(value || '')
+        .toLowerCase()
+        .replace(/[–—]/g, '-')
+        .replace(/\([^)]*\)/g, ' ')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function compactQuoteItem(item) {
+      return {
+        i: item.id || '',
+        n: item.name || '',
+        p: Number(item.price) || 0,
+        m: item.monthly ? 1 : 0,
+        c: item.category || '',
+        l: Array.isArray(item.labels) ? item.labels : [],
+        q: Number(item.qty) || 1,
+        x: item.isAutoAddonSelection ? 1 : 0,
+        b: item.isBaselineSelection ? 1 : 0,
+        a: (item.selectedAddons || []).map(addon => ({
+          i: addon.id || '',
+          n: addon.name || '',
+          d: addon.desc || '',
+          p: Number(addon.price) || 0,
+          m: addon.monthly ? 1 : 0,
+          r: addon.required ? 1 : 0
+        }))
+      };
+    }
+
+    function quoteRecordChecksum(value) {
+      const bytes = new TextEncoder().encode(String(value || ''));
+      let hash = 2166136261;
+      for (const byte of bytes) {
+        hash ^= byte;
+        hash = Math.imul(hash, 16777619);
+      }
+      return (hash >>> 0).toString(16).padStart(8, '0');
+    }
+
+    function buildPortableQuoteRecord(reference) {
+      const outlets = {};
+      Object.entries(selectedState || {}).forEach(([outletId, outletItems]) => {
+        outlets[outletId] = Object.values(outletItems || {}).map(compactQuoteItem);
+      });
+
+      const record = {
+        f: 'LOLLY_QUOTE_V2',
+        r: reference || '',
+        v: normaliseQuoteVersion(intakeData.quoteVersion || 'v01'),
+        t: new Date().toISOString(),
+        i: {
+          r: intakeData.requestorName || '',
+          b: intakeData.businessArea || '',
+          s: intakeData.siteName || '',
+          e: intakeData.endClientName || '',
+          a1: intakeData.streetAddress || '',
+          a2: intakeData.streetAddressLine2 || '',
+          c: intakeData.city || '',
+          st: intakeData.stateProvince || '',
+          p: intakeData.postalZipCode || '',
+          o: Math.max(Number(intakeData.numberOutlets) || 1, Object.keys(outlets).length || 1)
+        },
+        o: outlets
+      };
+      record.h = quoteRecordChecksum(JSON.stringify(record));
+      return record;
+    }
+
+    function bytesToBase64Url(bytes) {
+      let binary = '';
+      const chunk = 0x8000;
+      for (let index = 0; index < bytes.length; index += chunk) {
+        binary += String.fromCharCode(...bytes.subarray(index, index + chunk));
+      }
+      return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    }
+
+    function base64UrlToBytes(value) {
+      const padded = String(value || '').replace(/-/g, '+').replace(/_/g, '/');
+      const base64 = padded + '='.repeat((4 - padded.length % 4) % 4);
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let index = 0; index < binary.length; index += 1) {
+        bytes[index] = binary.charCodeAt(index);
+      }
+      return bytes;
+    }
+
+    function bytesToHex(bytes) {
+      return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('').toUpperCase();
+    }
+
+    function hexToBytes(value) {
+      const clean = String(value || '').replace(/[^0-9a-f]/gi, '');
+      if (!clean || clean.length % 2 !== 0) throw new Error('The PDF quote record is incomplete.');
+      const bytes = new Uint8Array(clean.length / 2);
+      for (let index = 0; index < clean.length; index += 2) {
+        bytes[index / 2] = Number.parseInt(clean.slice(index, index + 2), 16);
+      }
+      return bytes;
+    }
+
+    function encodePortableQuoteRecord(record) {
+      return bytesToBase64Url(new TextEncoder().encode(JSON.stringify(record)));
+    }
+
+    function decodePortableQuoteRecord(encoded) {
+      const json = new TextDecoder().decode(base64UrlToBytes(encoded));
+      const record = JSON.parse(json);
+      if (!record || !['LOLLY_QUOTE_V1', 'LOLLY_QUOTE_V2'].includes(record.f) || !record.i || !record.o) {
+        throw new Error('The embedded quote record is not recognised.');
+      }
+      return record;
+    }
+
+    function decodePortableQuoteRecordV2(hexValue) {
+      const json = new TextDecoder().decode(hexToBytes(hexValue));
+      const record = JSON.parse(json);
+      if (!record || record.f !== 'LOLLY_QUOTE_V2' || !record.i || !record.o) {
+        throw new Error('The embedded quote record is not recognised.');
+      }
+      const storedHash = String(record.h || '').toLowerCase();
+      const checkRecord = { ...record };
+      delete checkRecord.h;
+      const expectedHash = quoteRecordChecksum(JSON.stringify(checkRecord));
+      if (!storedHash || storedHash !== expectedHash) {
+        throw new Error('The PDF quote record is damaged or incomplete. Export the quote again from the calculator.');
+      }
+      return record;
+    }
+
+    function buildQuotePdfMarker(reference) {
+      const encoded = bytesToHex(new TextEncoder().encode(JSON.stringify(buildPortableQuoteRecord(reference))));
+      const chunks = encoded.match(/.{1,160}/g) || [];
+      return `${QUOTE_PDF_MARKER_V2_START}\n${chunks.join('\n')}\n${QUOTE_PDF_MARKER_V2_END}`;
+    }
+
+    function setQuoteImportStatus(message = '', type = '') {
+      const status = document.getElementById('quote-import-status');
+      if (!status) return;
+      status.textContent = message;
+      status.className = `quote-import-status${type ? ` ${type}` : ''}`;
+    }
+
+    function ensurePdfJs() {
+      if (window.pdfjsLib?.getDocument) return Promise.resolve(window.pdfjsLib);
+      if (window.__lollyPdfJsPromise) return window.__lollyPdfJsPromise;
+
+      const sources = [
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+        'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js'
+      ];
+
+      window.__lollyPdfJsPromise = new Promise((resolve, reject) => {
+        const trySource = (index) => {
+          if (index >= sources.length) {
+            reject(new Error('The PDF reader could not load. Check the internet connection and try again.'));
+            return;
+          }
+          const script = document.createElement('script');
+          script.src = sources[index];
+          script.async = true;
+          script.onload = () => {
+            if (window.pdfjsLib?.getDocument) resolve(window.pdfjsLib);
+            else trySource(index + 1);
+          };
+          script.onerror = () => trySource(index + 1);
+          document.head.appendChild(script);
+        };
+        trySource(0);
+      }).catch(error => {
+        window.__lollyPdfJsPromise = null;
+        throw error;
+      });
+
+      return window.__lollyPdfJsPromise;
+    }
+
+    function groupPdfItemsIntoLines(items) {
+      const groups = [];
+      (items || []).forEach(item => {
+        const value = String(item.str || '').trim();
+        if (!value) return;
+        const x = Number(item.transform?.[4]) || 0;
+        const y = Number(item.transform?.[5]) || 0;
+        let line = groups.find(group => Math.abs(group.y - y) <= 2.25);
+        if (!line) {
+          line = { y, items: [] };
+          groups.push(line);
+        }
+        line.items.push({ x, value });
+      });
+      return groups
+        .sort((a, b) => b.y - a.y)
+        .map(group => group.items.sort((a, b) => a.x - b.x).map(item => item.value).join(' ').replace(/\s+/g, ' ').trim())
+        .filter(Boolean);
+    }
+
+    async function extractQuotePdfText(file) {
+      const pdfjs = await ensurePdfJs();
+      const data = new Uint8Array(await file.arrayBuffer());
+      const loadingTask = pdfjs.getDocument({ data, disableWorker: true });
+      const pdf = await loadingTask.promise;
+      const tokens = [];
+      const lines = [];
+
+      for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+        const page = await pdf.getPage(pageNumber);
+        const content = await page.getTextContent();
+        const pageItems = content.items || [];
+        pageItems.forEach(item => {
+          const value = String(item.str || '').trim();
+          if (value) tokens.push(value);
+        });
+        lines.push(...groupPdfItemsIntoLines(pageItems));
+      }
+
+      return {
+        tokens,
+        lines,
+        compact: tokens.join('').replace(/\s+/g, ''),
+        text: lines.join('\n')
+      };
+    }
+
+    function extractEmbeddedQuoteRecord(extracted) {
+      const candidates = [
+        extracted.text || '',
+        extracted.compact || '',
+        (extracted.tokens || []).join(''),
+        (extracted.lines || []).join('\n')
+      ];
+
+      for (const source of candidates) {
+        const compact = String(source || '').replace(/\s+/g, '');
+        const startV2 = compact.indexOf(QUOTE_PDF_MARKER_V2_START);
+        const endV2 = compact.indexOf(QUOTE_PDF_MARKER_V2_END, startV2 + QUOTE_PDF_MARKER_V2_START.length);
+        if (startV2 >= 0 && endV2 > startV2) {
+          const hexValue = compact
+            .slice(startV2 + QUOTE_PDF_MARKER_V2_START.length, endV2)
+            .replace(/[^0-9a-f]/gi, '');
+          return decodePortableQuoteRecordV2(hexValue);
+        }
+      }
+
+      // Backward compatibility with the original V1 base64 record.
+      for (const source of candidates) {
+        const compact = String(source || '').replace(/\s+/g, '');
+        const start = compact.indexOf(QUOTE_PDF_MARKER_START);
+        const end = compact.indexOf(QUOTE_PDF_MARKER_END, start + QUOTE_PDF_MARKER_START.length);
+        if (start >= 0 && end > start) {
+          const encoded = compact.slice(start + QUOTE_PDF_MARKER_START.length, end);
+          return decodePortableQuoteRecord(encoded);
+        }
+      }
+      return null;
+    }
+
+    function isMoneyToken(value) {
+      return /^(?:£|GBP\s*)?[\d,]+(?:\.\d{2})?(?:\s*\/mo)?$/i.test(String(value || '').trim());
+    }
+
+    function valueAfterPdfLabel(tokens, label) {
+      const wanted = normaliseQuoteImportName(label);
+      const labelNames = new Set([
+        'quote reference', 'version', 'date', 'site', 'end client', 'requested by', 'business area',
+        'address', 'outlets', 'one off items', 'monthly items'
+      ]);
+      for (let index = 0; index < tokens.length; index += 1) {
+        if (normaliseQuoteImportName(tokens[index]) !== wanted) continue;
+        for (let next = index + 1; next < Math.min(tokens.length, index + 5); next += 1) {
+          const candidate = String(tokens[next] || '').trim();
+          if (!candidate || labelNames.has(normaliseQuoteImportName(candidate))) continue;
+          return candidate;
+        }
+      }
+      return '';
+    }
+
+    function parseLegacyQuoteRows(tokens) {
+      const start = tokens.findIndex(token => normaliseQuoteImportName(token).includes('items included in this quote'));
+      const end = tokens.findIndex((token, index) => index > start && normaliseQuoteImportName(token) === 'breakdown');
+      const section = tokens.slice(start >= 0 ? start + 1 : 0, end > start ? end : tokens.length);
+      const rows = [];
+
+      for (let index = 0; index < section.length; index += 1) {
+        const type = String(section[index] || '').trim();
+        if (type !== 'One-off' && type !== 'Monthly') continue;
+
+        const outletToken = String(section[index + 1] || '').trim();
+        const outletMatch = /^Outlet\s+(\d+)$/i.exec(outletToken);
+        if (!outletMatch) continue;
+
+        let qtyIndex = -1;
+        for (let cursor = index + 2; cursor < Math.min(section.length - 2, index + 18); cursor += 1) {
+          if (/^\d+$/.test(String(section[cursor]).trim()) && isMoneyToken(section[cursor + 1]) && isMoneyToken(section[cursor + 2])) {
+            qtyIndex = cursor;
+            break;
+          }
+        }
+        if (qtyIndex < 0) continue;
+
+        const description = section.slice(index + 2, qtyIndex).join(' ').replace(/\s+/g, ' ').trim();
+        const addonMatch = /\bAdd-ons:\s*(.*)$/i.exec(description);
+        const itemName = (addonMatch ? description.slice(0, addonMatch.index) : description).trim();
+        const addonNames = addonMatch
+          ? addonMatch[1].split(/\s*,\s*/).map(value => value.trim()).filter(Boolean)
+          : [];
+
+        if (itemName) {
+          rows.push({
+            type,
+            outletId: Number(outletMatch[1]),
+            itemName,
+            qty: Number(section[qtyIndex]) || 1,
+            addonNames
+          });
+        }
+        index = qtyIndex + 2;
+      }
+
+      const merged = new Map();
+      rows.forEach(row => {
+        const key = `${row.outletId}|${normaliseQuoteImportName(row.itemName)}`;
+        const current = merged.get(key) || { ...row, addonNames: [] };
+        current.qty = Math.max(Number(current.qty) || 1, Number(row.qty) || 1);
+        current.addonNames = [...new Set([...(current.addonNames || []), ...(row.addonNames || [])])];
+        merged.set(key, current);
+      });
+      return [...merged.values()];
+    }
+
+    function mergeLegacyQuoteRows(rows) {
+      const merged = new Map();
+      (rows || []).forEach(row => {
+        const key = `${row.outletId}|${normaliseQuoteImportName(row.itemName)}`;
+        const current = merged.get(key) || { ...row, addonNames: [] };
+        current.qty = Math.max(Number(current.qty) || 1, Number(row.qty) || 1);
+        current.addonNames = [...new Set([...(current.addonNames || []), ...(row.addonNames || [])])];
+        merged.set(key, current);
+      });
+      return [...merged.values()];
+    }
+
+    function parseLegacyQuoteRowsFromLines(lines) {
+      const cleanedLines = (lines || []).map(line => String(line || '').replace(/\s+/g, ' ').trim()).filter(Boolean);
+      const start = cleanedLines.findIndex(line => normaliseQuoteImportName(line).includes('items included in this quote'));
+      const end = cleanedLines.findIndex((line, index) => index > start && normaliseQuoteImportName(line) === 'breakdown');
+      const section = cleanedLines.slice(start >= 0 ? start + 1 : 0, end > start ? end : cleanedLines.length);
+      const rows = [];
+      let lastRow = null;
+      const money = '(?:£|GBP\\s*)?[\\d,]+(?:\\.\\d{2})?(?:\\s*\\/mo)?';
+      const rowPattern = new RegExp(`^(One-off|Monthly)\\s+Outlet\\s+(\\d+)\\s+(.+?)\\s+(\\d+)\\s+${money}\\s+${money}$`, 'i');
+
+      section.forEach(line => {
+        const rowMatch = rowPattern.exec(line);
+        if (rowMatch) {
+          lastRow = {
+            type: /^monthly$/i.test(rowMatch[1]) ? 'Monthly' : 'One-off',
+            outletId: Number(rowMatch[2]) || 1,
+            itemName: rowMatch[3].trim(),
+            qty: Number(rowMatch[4]) || 1,
+            addonNames: []
+          };
+          rows.push(lastRow);
+          return;
+        }
+
+        const addonMatch = /^Add-ons:\s*(.+)$/i.exec(line);
+        if (addonMatch && lastRow) {
+          lastRow.addonNames.push(...addonMatch[1].split(/\s*,\s*/).map(value => value.trim()).filter(Boolean));
+        }
+      });
+
+      return mergeLegacyQuoteRows(rows);
+    }
+
+    function findCatalogProductByName(name) {
+      const wanted = normaliseQuoteImportName(name);
+      if (!wanted) return null;
+      let partial = null;
+      for (const [category, items] of Object.entries(products || {})) {
+        for (let index = 0; index < (items || []).length; index += 1) {
+          const item = items[index];
+          const candidate = normaliseQuoteImportName(item.name);
+          if (candidate === wanted) return { id: `${category}-${index}`, category, item };
+          if (!partial && candidate && (candidate.includes(wanted) || wanted.includes(candidate))) {
+            partial = { id: `${category}-${index}`, category, item };
+          }
+        }
+      }
+      return partial;
+    }
+
+    function findAddonDefinition(baseItem, addonName) {
+      const wanted = normaliseQuoteImportName(addonName);
+      const local = (baseItem?.addons || []).find(addon => {
+        const candidate = normaliseQuoteImportName(addon.name);
+        return candidate === wanted || candidate.includes(wanted) || wanted.includes(candidate);
+      });
+      if (local) return local;
+
+      const catalog = findCatalogProductByName(addonName);
+      if (!catalog) return null;
+      return {
+        id: catalog.id,
+        name: catalog.item.name,
+        desc: catalog.item.desc || '',
+        price: Number(catalog.item.price) || 0,
+        monthly: !!catalog.item.monthly,
+        required: false
+      };
+    }
+
+    function addonSelectionFromDefinition(definition) {
+      return {
+        id: definition.id || '',
+        name: definition.name || '',
+        desc: definition.desc || '',
+        price: Number(definition.price) || 0,
+        monthly: !!definition.monthly,
+        required: !!definition.required
+      };
+    }
+
+    function buildStateFromLegacyRows(rows) {
+      const restored = {};
+      const warnings = [];
+      const drivers = rows.filter(row => (row.addonNames || []).length > 0);
+      const standalone = rows.filter(row => !(row.addonNames || []).length);
+
+      drivers.forEach(row => {
+        const catalog = findCatalogProductByName(row.itemName);
+        if (!catalog) {
+          warnings.push(`Could not match ${row.itemName}.`);
+          return;
+        }
+        if (!restored[row.outletId]) restored[row.outletId] = {};
+
+        const definitions = [];
+        (catalog.item.addons || []).filter(addon => addon.required).forEach(addon => definitions.push(addon));
+        (row.addonNames || []).forEach(name => {
+          const match = findAddonDefinition(catalog.item, name);
+          if (match) definitions.push(match);
+          else warnings.push(`Could not match add-on ${name} for ${row.itemName}.`);
+        });
+
+        const uniqueDefinitions = [];
+        const seen = new Set();
+        definitions.forEach(definition => {
+          const key = definition.id || normaliseQuoteImportName(definition.name);
+          if (!key || seen.has(key)) return;
+          seen.add(key);
+          uniqueDefinitions.push(addonSelectionFromDefinition(definition));
+        });
+
+        restored[row.outletId][catalog.id] = {
+          ...createSelectedItemData(catalog.id, catalog.item, catalog.category, row.qty, uniqueDefinitions),
+          addonChoicesReviewed: true,
+          isAutoAddonSelection: false
+        };
+      });
+
+      const previous = selectedState;
+      selectedState = restored;
+      Object.keys(restored).forEach(outletId => syncAddonProductsForOutlet(outletId));
+
+      standalone.forEach(row => {
+        const catalog = findCatalogProductByName(row.itemName);
+        if (!catalog) {
+          warnings.push(`Could not match ${row.itemName}.`);
+          return;
+        }
+        if (!selectedState[row.outletId]) selectedState[row.outletId] = {};
+        const existing = selectedState[row.outletId][catalog.id];
+        if (existing) {
+          if (row.qty > (Number(existing.qty) || 0)) {
+            existing.qty = row.qty;
+            existing.isAutoAddonSelection = false;
+          }
+        } else {
+          selectedState[row.outletId][catalog.id] = {
+            ...createSelectedItemData(catalog.id, catalog.item, catalog.category, row.qty, []),
+            addonChoicesReviewed: true,
+            isAutoAddonSelection: false
+          };
+        }
+      });
+
+      const result = selectedState;
+      selectedState = previous;
+      return { selectedState: result, warnings: [...new Set(warnings)] };
+    }
+
+    function quoteCatalogNamesByLength() {
+      const names = [];
+      Object.values(products || {}).forEach(items => {
+        (items || []).forEach(item => {
+          if (item?.name) names.push(item.name);
+        });
+      });
+      return [...new Set(names)].sort((a, b) => b.length - a.length);
+    }
+
+    function findCatalogNameInPdfLine(line) {
+      const normalisedLine = normaliseQuoteImportName(line);
+      if (!normalisedLine) return '';
+      for (const name of quoteCatalogNamesByLength()) {
+        const candidate = normaliseQuoteImportName(name);
+        if (candidate && (` ${normalisedLine} `).includes(` ${candidate} `)) return name;
+      }
+      return '';
+    }
+
+    function cleanLegacyAddonName(value) {
+      return String(value || '')
+        .replace(/\s*\((?:£|GBP)[^)]*\)\s*$/i, '')
+        .replace(/\s*\[[^\]]*\]\s*$/i, '')
+        .trim();
+    }
+
+    function parseLegacyQuoteRowsFlexible(extracted) {
+      const lines = [
+        ...(extracted.lines || []),
+        ...String(extracted.text || '').split(/\r?\n/)
+      ].map(line => String(line || '').replace(/\s+/g, ' ').trim()).filter(Boolean);
+      const rows = [];
+      const moneyPattern = '(?:£|GBP\\s*)?[\\d,]+(?:\\.\\d{2})?(?:\\s*\\/mo)?';
+      let currentType = 'One-off';
+      let pending = null;
+
+      const pushPending = () => {
+        if (!pending?.itemName) return;
+        rows.push({
+          type: pending.type || currentType,
+          outletId: Number(pending.outletId) || 1,
+          itemName: pending.itemName,
+          qty: Math.max(1, Number(pending.qty) || 1),
+          addonNames: [...new Set((pending.addonNames || []).map(cleanLegacyAddonName).filter(Boolean))]
+        });
+        pending = null;
+      };
+
+      for (let index = 0; index < lines.length; index += 1) {
+        const line = lines[index];
+        const normal = normaliseQuoteImportName(line);
+        if (/^monthly items?\b/i.test(line)) currentType = 'Monthly';
+        if (/^one[- ]off items?\b/i.test(line)) currentType = 'One-off';
+        if (/^(outlet totals|total|one-off total|monthly total|annual recurring|note:)/i.test(line)) {
+          pushPending();
+          continue;
+        }
+
+        const addonMatch = /^Add-ons?:\s*(.+)$/i.exec(line);
+        if (addonMatch && pending) {
+          pending.addonNames.push(...addonMatch[1].split(/\s*,\s*/));
+          continue;
+        }
+
+        const quantityLine = new RegExp(`^(\\d+)\\s+${moneyPattern}\\s+${moneyPattern}$`, 'i').exec(line);
+        if (quantityLine && pending) {
+          pending.qty = Number(quantityLine[1]) || pending.qty || 1;
+          pushPending();
+          continue;
+        }
+
+        const outletMatch = /\bOutlet\s+(\d+)\b/i.exec(line);
+        const itemName = findCatalogNameInPdfLine(line);
+        if (outletMatch && itemName) {
+          pushPending();
+          const typeMatch = /^(One-off|Monthly)\b/i.exec(line);
+          const qtyBeforeMoney = new RegExp(`\\b(\\d+)\\s+${moneyPattern}\\s+${moneyPattern}\\s*$`, 'i').exec(line);
+          pending = {
+            type: typeMatch ? (/^monthly$/i.test(typeMatch[1]) ? 'Monthly' : 'One-off') : currentType,
+            outletId: Number(outletMatch[1]) || 1,
+            itemName,
+            qty: qtyBeforeMoney ? Number(qtyBeforeMoney[1]) || 1 : 1,
+            addonNames: []
+          };
+
+          const inlineAddons = /Add-ons?:\s*(.+?)(?=\s+\d+\s+(?:£|GBP)|$)/i.exec(line);
+          if (inlineAddons) pending.addonNames.push(...inlineAddons[1].split(/\s*,\s*/));
+          if (qtyBeforeMoney) pushPending();
+          continue;
+        }
+
+        // Ignore the corrupted invisible-marker artefacts produced by older versions.
+        if (normal.includes('quo') && normal.length > 80) continue;
+      }
+      pushPending();
+      return mergeLegacyQuoteRows(rows);
+    }
+
+    function parseLegacyQuotePdf(extracted) {
+      const rows = mergeLegacyQuoteRows([
+        ...parseLegacyQuoteRows(extracted.tokens || []),
+        ...parseLegacyQuoteRowsFromLines(extracted.lines || []),
+        ...parseLegacyQuoteRowsFlexible(extracted)
+      ]);
+      if (!rows.length) {
+        throw new Error('This PDF does not contain a readable calculator quote record. Use an original quote PDF exported by this updated calculator. Older PDFs will be recovered only when their product table contains selectable text.');
+      }
+      const stateResult = buildStateFromLegacyRows(rows);
+      const outletsFromRows = Math.max(...rows.map(row => row.outletId), 1);
+      const outletValue = Number.parseInt(valueAfterPdfLabel(extracted.tokens, 'Outlets'), 10);
+      return {
+        f: 'LOLLY_QUOTE_V1',
+        r: valueAfterPdfLabel(extracted.tokens, 'Quote reference'),
+        v: normaliseQuoteVersion(valueAfterPdfLabel(extracted.tokens, 'Version') || 'v01'),
+        i: {
+          r: valueAfterPdfLabel(extracted.tokens, 'Requested by'),
+          b: valueAfterPdfLabel(extracted.tokens, 'Business area'),
+          s: valueAfterPdfLabel(extracted.tokens, 'Site'),
+          e: valueAfterPdfLabel(extracted.tokens, 'End client'),
+          a1: valueAfterPdfLabel(extracted.tokens, 'Address'),
+          a2: '', c: '', st: '', p: '',
+          o: Number.isFinite(outletValue) && outletValue > 0 ? outletValue : outletsFromRows
+        },
+        _legacyState: stateResult.selectedState,
+        _warnings: stateResult.warnings,
+        _legacy: true
+      };
+    }
+
+    function expandPortableItem(compact, fallbackCatalog = null) {
+      const catalog = getProductItemById(compact.i || '') || findCatalogProductByName(compact.n || '') || fallbackCatalog;
+      const id = catalog?.id || compact.i || `imported-${normaliseQuoteImportName(compact.n).replace(/\s+/g, '-')}`;
+      const category = catalog?.category || compact.c || 'cat1';
+      const base = catalog?.item || {};
+      return {
+        id,
+        name: compact.n || base.name || 'Imported item',
+        price: Number.isFinite(Number(compact.p)) ? Number(compact.p) : Number(base.price) || 0,
+        monthly: compact.m === 1 || compact.m === true,
+        category,
+        labels: Array.isArray(compact.l) ? compact.l : (base.labels || []),
+        qty: Math.max(1, Number(compact.q) || 1),
+        selectedAddons: (compact.a || []).map(addon => ({
+          id: addon.i || '',
+          name: addon.n || '',
+          desc: addon.d || '',
+          price: Number(addon.p) || 0,
+          monthly: addon.m === 1 || addon.m === true,
+          required: addon.r === 1 || addon.r === true
+        })),
+        addonChoicesReviewed: true,
+        isAutoAddonSelection: compact.x === 1 || compact.x === true,
+        isBaselineSelection: compact.b === 1 || compact.b === true
+      };
+    }
+
+    function stateFromPortableRecord(record) {
+      if (record._legacyState) return normalizeSelectedStateText(record._legacyState);
+      const restored = {};
+      Object.entries(record.o || {}).forEach(([outletId, compactItems]) => {
+        restored[outletId] = {};
+        (compactItems || []).forEach(compact => {
+          const item = expandPortableItem(compact);
+          restored[outletId][item.id] = item;
+        });
+      });
+      return normalizeSelectedStateText(restored);
+    }
+
+    function ensureBusinessAreaOption(value) {
+      const select = document.getElementById('business-area');
+      if (!select || !value) return;
+      const exists = [...select.options].some(option => option.value === value);
+      if (!exists) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      }
+    }
+
+    function applyImportedQuoteRecord(record, filename = '') {
+      const importedState = stateFromPortableRecord(record);
+      const selectedCount = Object.values(importedState).reduce((total, outlet) => total + Object.keys(outlet || {}).length, 0);
+      if (!selectedCount) throw new Error('The PDF did not contain any restorable quote items.');
+
+      const currentHasItems = Object.values(selectedState || {}).some(outlet => Object.keys(outlet || {}).length > 0);
+      if (currentHasItems && !confirm('Importing this PDF will replace the selections currently on screen. Continue?')) {
+        return false;
+      }
+
+      const info = record.i || {};
+      const outletIds = Object.keys(importedState).map(Number).filter(Number.isFinite);
+      const outletCount = Math.max(Number(info.o) || 1, ...outletIds, 1);
+
+      const sourceVersion = normaliseQuoteVersion(record.v || extractQuoteVersionFromFilename(filename) || 'v01');
+      const nextVersion = incrementQuoteVersion(sourceVersion);
+      intakeData = {
+        requestorName: info.r || '',
+        businessArea: info.b || '',
+        siteName: info.s || '',
+        endClientName: info.e || '',
+        streetAddress: info.a1 || '',
+        streetAddressLine2: info.a2 || '',
+        city: info.c || '',
+        stateProvince: info.st || '',
+        postalZipCode: info.p || '',
+        numberOutlets: outletCount,
+        quoteVersion: nextVersion
+      };
+      selectedState = importedState;
+      currentOutlet = Math.min(...outletIds.filter(value => value > 0), 1) || 1;
+      currentQuoteReference = String(record.r || '').trim();
+
+      ensureBusinessAreaOption(intakeData.businessArea);
+      initializeIntakeForm();
+      showIntakeDisplay();
+      loadCategory('cat1');
+      calculateTotals();
+      document.getElementById('quote-builder-workspace')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      const warnings = Array.isArray(record._warnings) ? record._warnings : [];
+      const restoreMethod = record._legacy ? 'Recovered from the visible quote table' : (record.f === 'LOLLY_QUOTE_V2' ? 'Restored from the verified PDF record' : 'Restored from the original PDF record');
+      const baseMessage = `${restoreMethod}: ${selectedCount} quote line item${selectedCount === 1 ? '' : 's'} from ${filename || 'the PDF'}. Version ${sourceVersion} has been advanced automatically to ${nextVersion}.`;
+      if (warnings.length) {
+        setQuoteImportStatus(`${baseMessage} Review the quote carefully: ${warnings.join(' ')}`, 'warning');
+      } else {
+        setQuoteImportStatus(`${baseMessage} Review the selections, then complete the site survey.`, 'success');
+      }
+      return true;
+    }
+
+    async function importQuotePdf(file) {
+      if (!file) return;
+      if (quotePdfImportInProgress) return;
+      if (!/\.pdf$/i.test(file.name || '') && file.type !== 'application/pdf') {
+        setQuoteImportStatus('Please choose a PDF quote.', 'error');
+        return;
+      }
+      if (file.size > 25 * 1024 * 1024) {
+        setQuoteImportStatus('This PDF is larger than 25 MB. Use the original calculator quote PDF.', 'error');
+        return;
+      }
+
+      quotePdfImportInProgress = true;
+      const button = document.getElementById('import-quote-pdf');
+      if (button) {
+        button.disabled = true;
+        button.textContent = 'Reading quote…';
+      }
+      setQuoteImportStatus('Reading the quote locally in this browser…');
+
+      try {
+        const extracted = await extractQuotePdfText(file);
+        let record = extractEmbeddedQuoteRecord(extracted);
+        if (!record) record = parseLegacyQuotePdf(extracted);
+        applyImportedQuoteRecord(record, file.name);
+      } catch (error) {
+        console.error('Quote PDF import failed:', error);
+        setQuoteImportStatus(error.message || 'The quote could not be imported.', 'error');
+      } finally {
+        quotePdfImportInProgress = false;
+        if (button) {
+          button.disabled = false;
+          button.textContent = 'Import previous quote PDF';
+        }
+      }
+    }
+
+    document.getElementById('import-quote-pdf')?.addEventListener('click', () => {
+      document.getElementById('quote-pdf-input')?.click();
+    });
+
+    document.getElementById('quote-pdf-input')?.addEventListener('change', async event => {
+      const file = event.target.files?.[0];
+      event.target.value = '';
+      await importQuotePdf(file);
+    });
+
     // ===== PROPOSAL BUILDER =====
     const proposalDefaultQuestions = [
       'What network options are available across all catering locations?',
@@ -8054,17 +9146,45 @@
       proposalSaveDraft();
     }
 
-    function proposalHandleImage(inputId, clientKey) {
-      document.getElementById(inputId).addEventListener('change', event => {
+    function proposalUpdateImageControls() {
+      [
+        { removeId: 'proposal-cover-image-remove', clientKey: 'coverImage' },
+        { removeId: 'proposal-client-logo-remove', clientKey: 'clientLogo' }
+      ].forEach(({ removeId, clientKey }) => {
+        const removeButton = document.getElementById(removeId);
+        if (removeButton) {
+          removeButton.classList.toggle('hidden', !proposalDraft.client[clientKey]);
+        }
+      });
+    }
+
+    function proposalHandleImage(inputId, removeId, clientKey) {
+      const input = document.getElementById(inputId);
+      const removeButton = document.getElementById(removeId);
+      if (!input || !removeButton) return;
+
+      input.addEventListener('change', event => {
         const file = event.target.files[0];
-        if (!file) return;
+        if (!file) {
+          proposalUpdateImageControls();
+          return;
+        }
         const reader = new FileReader();
         reader.onload = readerEvent => {
           proposalDraft.client[clientKey] = readerEvent.target.result;
           proposalRenderPreview();
           proposalSaveDraft();
+          proposalUpdateImageControls();
         };
         reader.readAsDataURL(file);
+      });
+
+      removeButton.addEventListener('click', () => {
+        proposalDraft.client[clientKey] = '';
+        input.value = '';
+        proposalRenderPreview();
+        proposalSaveDraft();
+        proposalUpdateImageControls();
       });
     }
 
@@ -8072,8 +9192,9 @@
       proposalLoadDraft();
       proposalRenderOutlets();
       proposalRenderPreview();
-      proposalHandleImage('proposal-cover-image', 'coverImage');
-      proposalHandleImage('proposal-client-logo', 'clientLogo');
+      proposalHandleImage('proposal-cover-image', 'proposal-cover-image-remove', 'coverImage');
+      proposalHandleImage('proposal-client-logo', 'proposal-client-logo-remove', 'clientLogo');
+      proposalUpdateImageControls();
       document.querySelectorAll('.proposal-tab-btn').forEach(button => button.addEventListener('click', () => {
         document.querySelectorAll('.proposal-tab-btn').forEach(btn => btn.classList.remove('active'));
         button.classList.add('active');
@@ -8165,6 +9286,22 @@
           const cur = parseInt(numInput.value || '1', 10);
           if (cur > 1) numInput.value = cur - 1;
           numInput.dispatchEvent(new Event('input'));
+        });
+      }
+
+      const clearInfo = $('intake-clear-information');
+      if (clearInfo) {
+        clearInfo.addEventListener('click', () => {
+          const ids = ['requestor-name','site-name','end-client-name','street-address','street-address-line2','city','state-province','postal-zip-code'];
+          ids.forEach(id => { const field = $(id); if (field) field.value = ''; });
+          if ($('business-area')) $('business-area').value = '';
+          if ($('number-outlets')) $('number-outlets').value = '1';
+          if ($('quote-version')) $('quote-version').value = 'v01';
+          if ($('quote-version-display')) $('quote-version-display').textContent = 'v01';
+          const status = $('quote-import-status');
+          if (status) { status.textContent = ''; status.className = 'quote-import-status'; }
+          const addressDetails = document.querySelector('#intake-form-section details');
+          if (addressDetails) addressDetails.open = false;
         });
       }
 
@@ -8346,13 +9483,18 @@
   }
 
   function getQuoteReference() {
+    if (typeof currentQuoteReference !== 'undefined' && currentQuoteReference) {
+      return currentQuoteReference;
+    }
     const now = new Date();
     const date = now.toISOString().slice(0, 10).replace(/-/g, '');
     const random = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2))
       .replace(/-/g, '')
       .slice(0, 6)
       .toUpperCase();
-    return `LQ-${date}-${random}`;
+    const reference = `LQ-${date}-${random}`;
+    if (typeof currentQuoteReference !== 'undefined') currentQuoteReference = reference;
+    return reference;
   }
 
   function getAllSelections() {
@@ -9344,6 +10486,8 @@
     let popup = null;
 
     try {
+      // Open the tab immediately from the user's click so corporate popup
+      // blockers do not prevent the handoff.
       popup = window.open('', '_blank');
       if (!popup) {
         throw new Error('Your browser blocked the Jotform tab. Allow pop-ups for this page and try again.');
@@ -9385,6 +10529,9 @@
     }
   }
 
+  // Use delegated controls rather than binding only once on DOMContentLoaded.
+  // This remains reliable if another part of the calculator redraws or replaces
+  // a button after the page has loaded.
   function handleSurveyControlClick(event) {
     const control = event.target.closest(
       '#complete-site-survey, #rail-site-survey, #site-survey-close, #site-survey-cancel, #site-survey-back, #site-survey-review, #site-survey-submit, #survey-refresh-scope'
